@@ -53,14 +53,16 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.d(TAG, s);
     }
 
-    public void start() {
+    public boolean start() {
         this.cardManager.start();
         if (this.nfcAdapter != null) {
             IntentFilter filter = new IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
             activity.registerReceiver(this, filter);
             nfcAdapter.enableReaderMode(activity, this.cardManager, NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
+            return true;
         } else {
             log("not support in this device");
+            return false;
         }
     }
 
@@ -180,5 +182,32 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.loadKey(seed);
 
         log("seed loaded to card");
+    }
+
+    public WritableMap getApplicationInfo() throws IOException, APDUException {
+        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
+
+        Log.i(TAG, "Card initialized? " + info.isInitializedCard());
+        Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
+        Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
+        Log.i(TAG, "Application version: " + info.getAppVersionString());
+        Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
+        if (info.hasMasterKey()) {
+            Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
+        } else {
+            Log.i(TAG, "The card has no master key");
+        }
+
+        WritableMap cardInfo = Arguments.createMap();
+
+        cardInfo.putBoolean("initialized?", info.isInitializedCard());
+        cardInfo.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
+        cardInfo.putString("secure-channel-pub-key", Hex.toHexString(info.getSecureChannelPubKey()));
+        cardInfo.putString("app-version", info.getAppVersionString());
+        cardInfo.putInt("free-pairing-slots", info.getFreePairingSlots());
+        cardInfo.putBoolean("has-master-key?", info.hasMasterKey());
+
+        return cardInfo;
     }
 }

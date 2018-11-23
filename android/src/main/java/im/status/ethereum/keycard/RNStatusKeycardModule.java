@@ -53,7 +53,6 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
 
   @ReactMethod
   public void nfcIsSupported(final Callback callback) {
-      Log.d("SC", " " + this.smartCard);
     callback.invoke(smartCard.isNfcSupported());
   }
 
@@ -70,8 +69,12 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
   }
 
   @ReactMethod
-  public void start() {
-    smartCard.start();
+  public void start(Callback successCallback, Callback errorCallback) {
+    if (smartCard.start()) {
+       successCallback.invoke();
+    } else {
+       errorCallback.invoke();
+    };
   }
 
   @ReactMethod
@@ -123,6 +126,16 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
       Log.d(TAG, e.getMessage());
       errorCallback.invoke(e.getMessage());
     }
+  }
+
+  @ReactMethod
+  public void getApplicationInfo(final Callback successCallback, Callback errorCallback) {
+      try {
+          successCallback.invoke(smartCard.getApplicationInfo());
+      } catch (IOException | APDUException e) {
+          Log.d(TAG, e.getMessage());
+          errorCallback.invoke(e.getMessage());
+      }
   }
 
 }
