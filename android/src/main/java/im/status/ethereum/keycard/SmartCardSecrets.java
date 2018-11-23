@@ -20,31 +20,22 @@ public class SmartCardSecrets {
     private String pin;
     private String puk;
     private String pairingPassword;
-    private byte[] pairingToken;
 
-    public SmartCardSecrets(String pin, String puk, String pairingPassword, byte[] pairingToken) {
+    public SmartCardSecrets(String pin, String puk, String pairingPassword) {
         this.pin = pin;
         this.puk = puk;
         this.pairingPassword = pairingPassword;
-        this.pairingToken = pairingToken;
     }
 
     @NonNull
     public static SmartCardSecrets generate() throws NoSuchAlgorithmException, InvalidKeySpecException {
         String pairingPassword = randomToken(12);
-        byte[] pairingToken = generatePairingKey(pairingPassword.toCharArray());
         long pinNumber = randomLong(PIN_BOUND);
         long pukNumber = randomLong(PUK_BOUND);
         String pin = String.format("%06d", pinNumber);
         String puk = String.format("%012d", pukNumber);
 
-        return new SmartCardSecrets(pin, puk, pairingPassword, pairingToken);
-    }
-
-    public static SmartCardSecrets testSecrets() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String pairingPassword = "WalletAppletTest";
-        byte[] pairingToken = generatePairingKey(pairingPassword.toCharArray());
-        return new SmartCardSecrets("000000", "123456789012", pairingPassword, pairingToken);
+        return new SmartCardSecrets(pin, puk, pairingPassword);
     }
 
     public String getPin() {
@@ -57,19 +48,6 @@ public class SmartCardSecrets {
 
     public String getPairingPassword() {
         return pairingPassword;
-    }
-
-    public byte[] getPairingToken() {
-        return pairingToken;
-    }
-
-    public static byte[] generatePairingKey(char[] pairing) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        String salt = "Status Hardware Wallet Lite";
-        PBEKeySpec spec = new PBEKeySpec(pairing, salt.getBytes(), 50000, 32*8);
-        SecretKey key = skf.generateSecret(spec);
-
-        return key.getEncoded();
     }
 
     public static long randomLong(long bound) {
