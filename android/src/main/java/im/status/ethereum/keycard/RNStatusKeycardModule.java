@@ -6,11 +6,12 @@ import android.provider.Settings;
 import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.WritableMap;
 
 import java.io.IOException;
@@ -52,33 +53,33 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
   }
 
   @ReactMethod
-  public void nfcIsSupported(final Callback callback) {
-    callback.invoke(smartCard.isNfcSupported());
+  public void nfcIsSupported(final Promise promise) {
+      promise.resolve(smartCard.isNfcSupported());
   }
 
   @ReactMethod
-  public void nfcIsEnabled(final Callback callback) {
-    callback.invoke(smartCard.isNfcEnabled());
+  public void nfcIsEnabled(final Promise promise) {
+    promise.resolve(smartCard.isNfcEnabled());
   }
 
   @ReactMethod
-  public void openNfcSettings(final Callback callback) {
+  public void openNfcSettings(final Promise promise) {
       Activity currentActivity = getCurrentActivity();
       currentActivity.startActivity(new Intent(Settings.ACTION_NFC_SETTINGS));
-      callback.invoke();
+      promise.resolve(true);
   }
 
   @ReactMethod
-  public void start(Callback successCallback, Callback errorCallback) {
-    if (smartCard.start()) {
-       successCallback.invoke();
-    } else {
-       errorCallback.invoke();
-    };
+  public void start(final Promise promise) {
+      if (smartCard.start()) {
+          promise.resolve(true);
+      } else {
+          promise.reject("Error", "Not supported on this device");
+      }
   }
 
   @ReactMethod
-  public void init(final Callback successCallback, final Callback errorCallback) {
+  public void init(final Promise promise) {
     try {
       SmartCardSecrets s = smartCard.init();
 
@@ -87,54 +88,54 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
       params.putString("puk", s.getPuk());
       params.putString("password", s.getPairingPassword());
 
-      successCallback.invoke(params);
+      promise.resolve(params);
     } catch (IOException | APDUException | NoSuchAlgorithmException | InvalidKeySpecException e) {
       Log.d(TAG, e.getMessage());
-      errorCallback.invoke(e.getMessage());
+      promise.reject(e.getClass().toString(), e.getMessage());
     }
   }
 
   @ReactMethod
-  public void pair(final String password, final Callback successCallback, final Callback errorCallback) {
+  public void pair(final String password, final Promise promise) {
     try {
       String pairing = smartCard.pair(password);
       Log.d(TAG, "pairing done");
 
-      successCallback.invoke(pairing);
+      promise.resolve(pairing);
     } catch (IOException | APDUException e) {
       Log.d(TAG, e.getMessage());
-      errorCallback.invoke(e.getMessage());
+      promise.reject(e.getClass().toString(), e.getMessage());
     }
   }
 
   @ReactMethod
-  public void generateMnemonic(final String password, Callback successCallback, Callback errorCallback) {
+  public void generateMnemonic(final String password, final Promise promise) {
     try {
-      successCallback.invoke(smartCard.generateMnemonic(password));
+      promise.resolve(smartCard.generateMnemonic(password));
     } catch (IOException | APDUException e) {
       Log.d(TAG, e.getMessage());
-      errorCallback.invoke(e.getMessage());
+      promise.reject(e.getClass().toString(), e.getMessage());
     }
   }
 
   @ReactMethod
-  public void saveMnemonic(final String mnemonic, final String password, String pin, Callback successCallback, Callback errorCallback) {
+  public void saveMnemonic(final String mnemonic, final String password, final String pin, final Promise promise) {
     try {
       smartCard.saveMnemonic(mnemonic, password, pin);
-      successCallback.invoke();
+      promise.resolve(true);
     } catch (IOException | APDUException e) {
       Log.d(TAG, e.getMessage());
-      errorCallback.invoke(e.getMessage());
+      promise.reject(e.getClass().toString(), e.getMessage());
     }
   }
 
   @ReactMethod
-  public void getApplicationInfo(final Callback successCallback, Callback errorCallback) {
+  public void getApplicationInfo(final Promise promise) {
       try {
-          successCallback.invoke(smartCard.getApplicationInfo());
+          promise.resolve(smartCard.getApplicationInfo());
       } catch (IOException | APDUException e) {
           Log.d(TAG, e.getMessage());
-          errorCallback.invoke(e.getMessage());
+          promise.reject(e.getClass().toString(), e.getMessage());
       }
   }
 
