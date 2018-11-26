@@ -189,24 +189,28 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
         Log.i(TAG, "Card initialized? " + info.isInitializedCard());
-        Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
-        Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
-        Log.i(TAG, "Application version: " + info.getAppVersionString());
-        Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
-        if (info.hasMasterKey()) {
-            Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
-        } else {
-            Log.i(TAG, "The card has no master key");
-        }
 
         WritableMap cardInfo = Arguments.createMap();
-
         cardInfo.putBoolean("initialized?", info.isInitializedCard());
-        cardInfo.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
-        cardInfo.putString("secure-channel-pub-key", Hex.toHexString(info.getSecureChannelPubKey()));
-        cardInfo.putString("app-version", info.getAppVersionString());
-        cardInfo.putInt("free-pairing-slots", info.getFreePairingSlots());
-        cardInfo.putBoolean("has-master-key?", info.hasMasterKey());
+
+        if (info.isInitializedCard()) {
+            Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
+            Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
+            Log.i(TAG, "Application version: " + info.getAppVersionString());
+            Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
+
+            if (info.hasMasterKey()) {
+                Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
+            } else {
+                Log.i(TAG, "The card has no master key");
+            }
+
+            cardInfo.putBoolean("has-master-key?", info.hasMasterKey());
+            cardInfo.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
+            cardInfo.putString("secure-channel-pub-key", Hex.toHexString(info.getSecureChannelPubKey()));
+            cardInfo.putString("app-version", info.getAppVersionString());
+            cardInfo.putInt("free-pairing-slots", info.getFreePairingSlots());
+        }
 
         return cardInfo;
     }
