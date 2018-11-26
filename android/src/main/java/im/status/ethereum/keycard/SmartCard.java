@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.nfc.NfcAdapter;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
 import com.facebook.react.bridge.*;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
@@ -27,6 +28,7 @@ import im.status.hardwallet_lite_android.wallet.RecoverableSignature;
 import im.status.hardwallet_lite_android.wallet.ApplicationInfo;
 import im.status.hardwallet_lite_android.wallet.ApplicationStatus;
 import im.status.hardwallet_lite_android.wallet.KeyPath;
+
 import org.spongycastle.util.encoders.Hex;
 
 public class SmartCard extends BroadcastReceiver implements CardListener {
@@ -151,11 +153,12 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.autoUnpair();
     }
 
-    public String generateMnemonic(String password) throws IOException, APDUException {
+    public String generateMnemonic(String pairingBase64) throws IOException, APDUException {
         WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
-        cmdSet.autoPair(password);
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
 
         cmdSet.autoOpenSecureChannel();
         Log.i(TAG, "secure channel opened");
@@ -166,11 +169,12 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return mnemonic.toMnemonicPhrase();
     }
 
-    public void saveMnemonic(String mnemonic, String password, String pin) throws  IOException, APDUException {
+    public void saveMnemonic(String mnemonic, String pairingBase64, String pin) throws IOException, APDUException {
         WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
-        cmdSet.autoPair(password);
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
 
         cmdSet.autoOpenSecureChannel();
         Log.i(TAG, "secure channel opened");
@@ -213,5 +217,45 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         }
 
         return cardInfo;
+    }
+
+    public void deriveKey(final String path, final String pairingBase64, final String pin) throws IOException, APDUException {
+        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        KeyPath currentPath = new KeyPath(cmdSet.getStatus(WalletAppletCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
+        Log.i(TAG, "Current key path: " + currentPath);
+
+        if (!currentPath.toString().equals("m/44'/0'/0'/0/0")) {
+            cmdSet.deriveKey(path).checkOK();
+            Log.i(TAG, "Derived m/44'/0'/0'/0/0");
+        }
+    }
+
+    public String exportKey(final String pairingBase64,final String pin) throws IOException, APDUException {
+        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        byte[] key = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_ANY, true).checkOK().getData();
+
+        return Hex.toHexString(key);
     }
 }
