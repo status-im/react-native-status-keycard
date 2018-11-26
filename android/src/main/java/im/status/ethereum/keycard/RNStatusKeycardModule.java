@@ -38,7 +38,6 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
 
   @Override
   public void onHostResume() {
-      Log.d("ONHOSTRESUme", " " + this.smartCard);
     if (this.smartCard == null) {
       this.smartCard = new SmartCard(getCurrentActivity(), reactContext);
     }
