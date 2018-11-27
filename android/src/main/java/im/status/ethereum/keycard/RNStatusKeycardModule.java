@@ -119,6 +119,16 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
+    public void generateAndLoadKey(final String mnemonic, final String pairing, final String pin, final Promise promise) {
+       try {
+           promise.resolve(smartCard.generateAndLoadKey(mnemonic, pairing, pin));
+       } catch (IOException | APDUException e) {
+           Log.d(TAG, e.getMessage());
+           promise.reject(e);
+       }
+    }
+
+    @ReactMethod
     public void saveMnemonic(final String mnemonic, final String pairing, final String pin, final Promise promise) {
         try {
             smartCard.saveMnemonic(mnemonic, pairing, pin);

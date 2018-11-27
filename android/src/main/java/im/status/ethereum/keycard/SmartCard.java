@@ -21,12 +21,11 @@ import im.status.hardwallet_lite_android.io.APDUException;
 import im.status.hardwallet_lite_android.io.CardChannel;
 import im.status.hardwallet_lite_android.io.CardListener;
 import im.status.hardwallet_lite_android.io.CardManager;
+import im.status.hardwallet_lite_android.wallet.BIP32KeyPair;
 import im.status.hardwallet_lite_android.wallet.Mnemonic;
 import im.status.hardwallet_lite_android.wallet.WalletAppletCommandSet;
 import im.status.hardwallet_lite_android.wallet.Pairing;
-import im.status.hardwallet_lite_android.wallet.RecoverableSignature;
 import im.status.hardwallet_lite_android.wallet.ApplicationInfo;
-import im.status.hardwallet_lite_android.wallet.ApplicationStatus;
 import im.status.hardwallet_lite_android.wallet.KeyPath;
 
 import org.spongycastle.util.encoders.Hex;
@@ -241,7 +240,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         }
     }
 
-    public String exportKey(final String pairingBase64,final String pin) throws IOException, APDUException {
+    public String exportKey(final String pairingBase64, final String pin) throws IOException, APDUException {
         WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
@@ -257,5 +256,39 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         byte[] key = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_ANY, true).checkOK().getData();
 
         return Hex.toHexString(key);
+    }
+
+    public WritableMap generateAndLoadKey(final String mnemonic, final String pairingBase64, final String pin) throws IOException, APDUException {
+        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        byte[] seed = Mnemonic.toBinarySeed(mnemonic, "");
+        BIP32KeyPair keyPair = BIP32KeyPair.fromBinarySeed(seed);
+
+        cmdSet.loadKey(keyPair);
+        log("keypair loaded to card");
+
+        KeyPath currentPath = new KeyPath(cmdSet.getStatus(WalletAppletCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
+        Log.i(TAG, "Current key path: " + currentPath);
+
+        if (!currentPath.toString().equals("m/44'/0'/0'/0/0")) {
+            cmdSet.deriveKey("m/44'/0'/0'/0/0").checkOK();
+            Log.i(TAG, "Derived m/44'/0'/0'/0/0");
+        }
+
+        WritableMap data = Arguments.createMap();
+        data.putString("public-key", Hex.toHexString(keyPair.getPublicKey()));
+        data.putString("address", Hex.toHexString(keyPair.toEthereumAddress()));
+
+        return data;
     }
 }
