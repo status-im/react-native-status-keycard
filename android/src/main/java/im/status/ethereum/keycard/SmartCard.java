@@ -321,7 +321,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         byte[] tlv = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_ANY, true).checkOK().getData();
         BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
 
-        String whisperPath = "m/43'/60'/1581'/0/1073741824'";
+        String whisperPath = "m/43'/60'/1581'/0'/0";
         cmdSet.deriveKey(whisperPath).checkOK();
         Log.i(TAG, "Derived " + whisperPath);
 
