@@ -170,4 +170,14 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         }
     }
 
+    @ReactMethod
+    public void getWhisperKey(final String pairing, final String pin, final Promise promise) {
+        try {
+            promise.resolve(smartCard.getWhisperKey(pairing, pin));
+        } catch (IOException | APDUException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
 }

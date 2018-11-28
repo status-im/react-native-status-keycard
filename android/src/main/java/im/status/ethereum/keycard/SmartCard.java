@@ -258,6 +258,42 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return Hex.toHexString(key);
     }
 
+    public WritableMap getWhisperKey(final String pairingBase64, final String pin) throws IOException, APDUException {
+        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        String whisperPath = "m/43'/60'/1581'/0/1073741824'";
+        cmdSet.deriveKey(whisperPath).checkOK();
+        Log.i(TAG, "Derived " + whisperPath);
+
+        byte[] tlv = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_ANY, false).checkOK().getData();
+        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlv);
+
+        WritableMap data = Arguments.createMap();
+        data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
+        data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
+
+        String dbPath = "m/43'/60'/1581'/0/1073741825'";
+        cmdSet.deriveKey(dbPath).checkOK();
+        Log.i(TAG, "Derived " + dbPath);
+
+        byte[] tlv2 = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_ANY, false).checkOK().getData();
+        BIP32KeyPair dbKeyPair = BIP32KeyPair.fromTLV(tlv2);
+
+        data.putString("db-public-key", Hex.toHexString(dbKeyPair.getPublicKey()));
+
+        return data;
+    }
+
     public WritableMap generateAndLoadKey(final String mnemonic, final String pairingBase64, final String pin) throws IOException, APDUException {
         WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
@@ -277,17 +313,33 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.loadKey(keyPair);
         log("keypair loaded to card");
 
-        KeyPath currentPath = new KeyPath(cmdSet.getStatus(WalletAppletCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
-        Log.i(TAG, "Current key path: " + currentPath);
+        String walletPath = "m/44'/0'/0'/0/0";
+        cmdSet.deriveKey(walletPath).checkOK();
+        Log.i(TAG, "Derived " + walletPath);
 
-        if (!currentPath.toString().equals("m/44'/0'/0'/0/0")) {
-            cmdSet.deriveKey("m/44'/0'/0'/0/0").checkOK();
-            Log.i(TAG, "Derived m/44'/0'/0'/0/0");
-        }
+        byte[] tlv = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_HIGH, false).checkOK().getData();
+        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
+
+        String whisperPath = "m/43'/60'/1581'/0/1073741824'";
+        cmdSet.deriveKey(whisperPath).checkOK();
+        Log.i(TAG, "Derived " + whisperPath);
+
+        byte[] tlv2 = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_HIGH, false).checkOK().getData();
+        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlv2);
+
+        String dbPath = "m/43'/60'/1581'/0/1073741825'";
+        cmdSet.deriveKey(dbPath).checkOK();
+        Log.i(TAG, "Derived " + dbPath);
+
+        byte[] tlv3 = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_HIGH, false).checkOK().getData();
+        BIP32KeyPair dbKeyPair = BIP32KeyPair.fromTLV(tlv3);
 
         WritableMap data = Arguments.createMap();
-        data.putString("public-key", Hex.toHexString(keyPair.getPublicKey()));
-        data.putString("address", Hex.toHexString(keyPair.toEthereumAddress()));
+        data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
+        data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
+        data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
+        data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
+        data.putString("db-public-key", Hex.toHexString(dbKeyPair.getPublicKey()));
 
         return data;
     }
