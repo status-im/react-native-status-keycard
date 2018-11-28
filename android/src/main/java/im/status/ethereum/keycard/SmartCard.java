@@ -1,6 +1,7 @@
 package im.status.ethereum.keycard;
 
 import android.app.Activity;
+import android.content.res.AssetManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -342,5 +343,10 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         data.putString("db-public-key", Hex.toHexString(dbKeyPair.getPublicKey()));
 
         return data;
+    }
+
+    public void installApplet(AssetManager assets, String capPath) throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
+        Installer installer = new Installer(this.cardChannel, assets, capPath);
+        installer.start();
     }
 }

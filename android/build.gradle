@@ -39,5 +39,5 @@ repositories {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'com.github.status-im:hardwallet-lite-android:145fe4b'
+    implementation 'com.github.status-im:hardwallet-lite-android:735ccd8'
 }
