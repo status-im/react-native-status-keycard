@@ -272,6 +272,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
+//        String whisperPath = "m/43'/60'/1581'/0'/0";
         String whisperPath = "m/43'/60'/1581'/0/1073741824'";
         cmdSet.deriveKey(whisperPath).checkOK();
         Log.i(TAG, "Derived " + whisperPath);
@@ -283,6 +284,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
         data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
 
+//        String dbPath = "m/43'/60'/1581'/1'/0";
         String dbPath = "m/43'/60'/1581'/0/1073741825'";
         cmdSet.deriveKey(dbPath).checkOK();
         Log.i(TAG, "Derived " + dbPath);
@@ -321,14 +323,16 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         byte[] tlv = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_ANY, true).checkOK().getData();
         BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
 
-        String whisperPath = "m/43'/60'/1581'/0'/0";
+//        String whisperPath = "m/43'/60'/1581'/0'/0";
+        String whisperPath = "m/43'/60'/1581'/0/1073741824'";
         cmdSet.deriveKey(whisperPath).checkOK();
         Log.i(TAG, "Derived " + whisperPath);
 
         byte[] tlv2 = cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_HIGH, false).checkOK().getData();
         BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlv2);
 
-        String dbPath = "m/43'/60'/1581'/1'/0";
+//        String dbPath = "m/43'/60'/1581'/1'/0";
+        String dbPath = "m/43'/60'/1581'/0/1073741825'";
         cmdSet.deriveKey(dbPath).checkOK();
         Log.i(TAG, "Derived " + dbPath);
 
