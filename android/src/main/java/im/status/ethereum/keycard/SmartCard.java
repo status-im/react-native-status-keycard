@@ -263,7 +263,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return Hex.toHexString(key);
     }
 
-    public WritableMap getWhisperKey(final String pairingBase64, final String pin) throws IOException, APDUException {
+    public WritableMap getKeys(final String pairingBase64, final String pin) throws IOException, APDUException {
         WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
