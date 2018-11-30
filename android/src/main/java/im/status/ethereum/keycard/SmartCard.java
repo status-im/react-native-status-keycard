@@ -357,4 +357,12 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Installer installer = new Installer(this.cardChannel, assets, capPath);
         installer.start();
     }
+
+    public SmartCardSecrets installAppletAndInitCard(AssetManager assets, String capPath) throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
+        Installer installer = new Installer(this.cardChannel, assets, capPath);
+        installer.start();
+
+        return init();
+    }
+
 }

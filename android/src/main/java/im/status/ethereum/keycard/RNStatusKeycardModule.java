@@ -191,4 +191,21 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         }
     }
 
+    @ReactMethod
+    public void installAppletAndInitCard(Promise promise) {
+        try {
+            SmartCardSecrets s = smartCard.installAppletAndInitCard(this.reactContext.getAssets(), "wallet.cap");
+
+            WritableMap params = Arguments.createMap();
+            params.putString("pin", s.getPin());
+            params.putString("puk", s.getPuk());
+            params.putString("password", s.getPairingPassword());
+
+            promise.resolve(params);
+        } catch (IOException | APDUException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
 }
