@@ -18,21 +18,21 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-import im.status.hardwallet_lite_android.io.APDUException;
-import im.status.hardwallet_lite_android.io.CardChannel;
-import im.status.hardwallet_lite_android.io.CardListener;
-import im.status.hardwallet_lite_android.io.CardManager;
-import im.status.hardwallet_lite_android.wallet.BIP32KeyPair;
-import im.status.hardwallet_lite_android.wallet.Mnemonic;
-import im.status.hardwallet_lite_android.wallet.WalletAppletCommandSet;
-import im.status.hardwallet_lite_android.wallet.Pairing;
-import im.status.hardwallet_lite_android.wallet.ApplicationInfo;
-import im.status.hardwallet_lite_android.wallet.KeyPath;
+import im.status.keycard.io.APDUException;
+import im.status.keycard.io.CardChannel;
+import im.status.keycard.io.CardListener;
+import im.status.keycard.android.NFCCardManager;
+import im.status.keycard.applet.BIP32KeyPair;
+import im.status.keycard.applet.Mnemonic;
+import im.status.keycard.applet.KeycardCommandSet;
+import im.status.keycard.applet.Pairing;
+import im.status.keycard.applet.ApplicationInfo;
+import im.status.keycard.applet.KeyPath;
 
 import org.spongycastle.util.encoders.Hex;
 
 public class SmartCard extends BroadcastReceiver implements CardListener {
-    private CardManager cardManager;
+    private NFCCardManager cardManager;
     private Activity activity;
     private ReactContext reactContext;
     private NfcAdapter nfcAdapter;
@@ -44,7 +44,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private static final String ENCRYPTION_PATH = "m/43'/60'/1581'/1'/0";
 
     public SmartCard(Activity activity, ReactContext reactContext) {
-        this.cardManager = new CardManager();
+        this.cardManager = new NFCCardManager();
         this.cardManager.setCardListener(this);
         this.activity = activity;
         this.reactContext = reactContext;
@@ -118,7 +118,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public SmartCardSecrets init() throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
         SmartCardSecrets s = SmartCardSecrets.generate();
@@ -128,7 +128,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public String pair(String pairingPassword) throws IOException, APDUException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         log("Pairing password: " + pairingPassword);
         Log.i(TAG, "Applet selection successful");
 
@@ -150,7 +150,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public void unpair(String base64) throws IOException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         Pairing pairing = new Pairing(base64);
         cmdSet.setPairing(pairing);
 
@@ -158,7 +158,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public String generateMnemonic(String pairingBase64) throws IOException, APDUException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
         Pairing pairing = new Pairing(pairingBase64);
@@ -167,14 +167,14 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.autoOpenSecureChannel();
         Log.i(TAG, "secure channel opened");
 
-        Mnemonic mnemonic = new Mnemonic(cmdSet.generateMnemonic(WalletAppletCommandSet.GENERATE_MNEMONIC_12_WORDS).checkOK().getData());
+        Mnemonic mnemonic = new Mnemonic(cmdSet.generateMnemonic(KeycardCommandSet.GENERATE_MNEMONIC_12_WORDS).checkOK().getData());
         mnemonic.fetchBIP39EnglishWordlist();
 
         return mnemonic.toMnemonicPhrase();
     }
 
     public void saveMnemonic(String mnemonic, String pairingBase64, String pin) throws IOException, APDUException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
         Pairing pairing = new Pairing(pairingBase64);
@@ -193,7 +193,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public WritableMap getApplicationInfo() throws IOException, APDUException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
         Log.i(TAG, "Card initialized? " + info.isInitializedCard());
@@ -224,7 +224,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public void deriveKey(final String path, final String pairingBase64, final String pin) throws IOException, APDUException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
         Pairing pairing = new Pairing(pairingBase64);
@@ -236,7 +236,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
-        KeyPath currentPath = new KeyPath(cmdSet.getStatus(WalletAppletCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
+        KeyPath currentPath = new KeyPath(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
         Log.i(TAG, "Current key path: " + currentPath);
 
         if (!currentPath.toString().equals("m/44'/0'/0'/0/0")) {
@@ -246,7 +246,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public String exportKey(final String pairingBase64, final String pin) throws IOException, APDUException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
         Pairing pairing = new Pairing(pairingBase64);
@@ -264,7 +264,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public WritableMap getKeys(final String pairingBase64, final String pin) throws IOException, APDUException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
         Pairing pairing = new Pairing(pairingBase64);
@@ -307,7 +307,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public WritableMap generateAndLoadKey(final String mnemonic, final String pairingBase64, final String pin) throws IOException, APDUException {
-        WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(this.cardChannel);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
         Pairing pairing = new Pairing(pairingBase64);
