@@ -39,5 +39,6 @@ repositories {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'com.github.status-im:hardwallet-lite-android:c749e5a'
+    implementation 'com.madgag.spongycastle:core:1.58.0.0'
+    implementation 'com.github.status-im.status-keycard-java:android:2.0.0'
 }

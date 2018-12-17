@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-import im.status.hardwallet_lite_android.io.APDUException;
+import im.status.keycard.io.APDUException;
 
 public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
     private static final String TAG = "StatusKeycard";
