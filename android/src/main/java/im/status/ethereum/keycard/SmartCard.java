@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.nfc.NfcAdapter;
 import android.support.annotation.Nullable;
+import android.util.EventLog;
 import android.util.Log;
 
 import com.facebook.react.bridge.*;
@@ -37,6 +38,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private ReactContext reactContext;
     private NfcAdapter nfcAdapter;
     private CardChannel cardChannel;
+    private EventEmitter eventEmitter;
     private static final String TAG = "SmartCard";
 
     private static final String WALLET_PATH = "m/44'/0'/0'/0/0";
@@ -49,6 +51,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         this.activity = activity;
         this.reactContext = reactContext;
         this.nfcAdapter = NfcAdapter.getDefaultAdapter(activity.getBaseContext());
+        this.eventEmitter = new EventEmitter(reactContext);
     }
 
     public String getName() {
@@ -75,12 +78,12 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     @Override
     public void onConnected(final CardChannel channel) {
         this.cardChannel = channel;
-        sendEvent(reactContext, "keyCardOnConnected", null);
+        eventEmitter.emit("keyCardOnConnected", null);
     }
 
     @Override
     public void onDisconnected() {
-        sendEvent(reactContext, "keyCardOnDisconnected", null);
+        eventEmitter.emit( "keyCardOnDisconnected", null);
     }
 
     @Override
@@ -109,20 +112,19 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         }
     }
 
-    private void sendEvent(ReactContext reactContext,
-                           String eventName,
-                           @Nullable WritableMap params) {
-        reactContext
-                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit(eventName, params);
-    }
-
     public SmartCardSecrets init() throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
+        eventEmitter.emit("keycardInstallationProgress", 0.90);
+
         SmartCardSecrets s = SmartCardSecrets.generate();
+
+        eventEmitter.emit("keycardInstallationProgress", 0.93);
+
         cmdSet.init(s.getPin(), s.getPuk(), s.getPairingPassword()).checkOK();
+
+        eventEmitter.emit("keycardInstallationProgress", 1.0);
 
         return s;
     }
@@ -354,12 +356,12 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public void installApplet(AssetManager assets, String capPath) throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
-        Installer installer = new Installer(this.cardChannel, assets, capPath);
+        Installer installer = new Installer(this.cardChannel, assets, capPath, eventEmitter);
         installer.start();
     }
 
     public SmartCardSecrets installAppletAndInitCard(AssetManager assets, String capPath) throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
-        Installer installer = new Installer(this.cardChannel, assets, capPath);
+        Installer installer = new Installer(this.cardChannel, assets, capPath, eventEmitter);
         installer.start();
 
         return init();
