@@ -64,8 +64,16 @@ public class Installer {
 
         eventEmitter.emit("keycardInstallationProgress", 0.72);
 
+        eventEmitter.emitWithDelay("keycardInstallationProgress", 0.77, 3100);
+
+        eventEmitter.emitWithDelay("keycardInstallationProgress", 0.82, 6200);
+
+        eventEmitter.emitWithDelay("keycardInstallationProgress", 0.85, 8500);
+
         Log.i(TAG, "installing Keycard applet...");
         cmdSet.installKeycardApplet().checkOK();
+
+        eventEmitter.removeCallbacksAndMessages();
 
         eventEmitter.emit("keycardInstallationProgress", 0.88);
 
