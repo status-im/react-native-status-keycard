@@ -1,12 +1,12 @@
 
 {
   "name": "react-native-status-keycard",
-  "version": "1.0.0",
-  "description": "",
+  "version": "2.0.1",
+  "description": "React Native library to interact with Status Keycard using NFC connection (Android only)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": ""
+  "author": "Dmitry Novotochinov",
+  "license": "MIT"
 }
