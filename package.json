@@ -8,5 +8,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dmitry Novotochinov",
-  "license": "MIT"
+  "license": "MPL 2.0"
 }
