@@ -244,4 +244,26 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         }).start();
     }
 
+    @ReactMethod
+    public void verifyPin(final String pairing, final String pin, final Promise promise) {
+        try {
+            smartCard.verifyPin(pairing, pin);
+            promise.resolve(true);
+        } catch (IOException | APDUException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
+    public void changePin(final String pairing, final String currentPin, final String newPin, final Promise promise) {
+        try {
+            smartCard.changePin(pairing, currentPin, newPin);
+            promise.resolve(true);
+        } catch (IOException | APDUException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
 }
