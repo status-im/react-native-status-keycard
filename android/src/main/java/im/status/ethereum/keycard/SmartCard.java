@@ -367,4 +367,27 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return init();
     }
 
+    public KeycardCommandSet verifyPin(final String pairingBase64, final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        return cmdSet;
+    }
+
+    public void changePin(final String pairingBase64, final String currentPin, final String newPin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = verifyPin(pairingBase64, currentPin);
+
+        cmdSet.changePIN(0, newPin);
+        Log.i(TAG, "pin changed");
+    }
+
 }
