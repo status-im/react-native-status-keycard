@@ -19,10 +19,12 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
+import im.status.keycard.globalplatform.GlobalPlatformCommandSet;
 import im.status.keycard.io.APDUException;
 import im.status.keycard.io.CardChannel;
 import im.status.keycard.io.CardListener;
 import im.status.keycard.android.NFCCardManager;
+import im.status.keycard.applet.ApplicationStatus;
 import im.status.keycard.applet.BIP32KeyPair;
 import im.status.keycard.applet.Mnemonic;
 import im.status.keycard.applet.KeycardCommandSet;
@@ -151,14 +153,6 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return pairing.toBase64();
     }
 
-    public void unpair(String base64) throws IOException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        Pairing pairing = new Pairing(base64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoUnpair();
-    }
-
     public String generateMnemonic(String pairingBase64) throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
@@ -194,7 +188,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         log("seed loaded to card");
     }
 
-    public WritableMap getApplicationInfo() throws IOException, APDUException {
+    public WritableMap getApplicationInfo(final String pairingBase64) throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
@@ -213,6 +207,22 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
                 Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
             } else {
                 Log.i(TAG, "The card has no master key");
+            }
+
+            if (pairingBase64.length() > 0) {
+                Pairing pairing = new Pairing(pairingBase64);
+                cmdSet.setPairing(pairing);
+
+                cmdSet.autoOpenSecureChannel();
+                Log.i(TAG, "secure channel opened");
+
+                ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
+
+                Log.i(TAG, "PIN retry counter: " + status.getPINRetryCount());
+                Log.i(TAG, "PUK retry counter: " + status.getPUKRetryCount());
+
+                cardInfo.putInt("pin-retry-counter", status.getPINRetryCount());
+                cardInfo.putInt("puk-retry-counter", status.getPUKRetryCount());
             }
 
             cardInfo.putBoolean("has-master-key?", info.hasMasterKey());
@@ -367,7 +377,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return init();
     }
 
-    public KeycardCommandSet verifyPin(final String pairingBase64, final String pin) throws IOException, APDUException {
+    public int verifyPin(final String pairingBase64, final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
@@ -380,14 +390,73 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
-        return cmdSet;
+        ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
+
+        return status.getPINRetryCount();
     }
 
     public void changePin(final String pairingBase64, final String currentPin, final String newPin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = verifyPin(pairingBase64, currentPin);
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(currentPin).checkOK();
+        Log.i(TAG, "pin verified");
 
         cmdSet.changePIN(0, newPin);
         Log.i(TAG, "pin changed");
+    }
+
+    public void unblockPin(final String pairingBase64, final String puk, final String newPin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.unblockPIN(puk, newPin).checkOK();
+        Log.i(TAG, "pin unblocked");
+    }
+
+    public void unpair(final String pairingBase64, final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        cmdSet.autoUnpair();
+        Log.i(TAG, "card unpaired");
+    }
+
+    public void delete() throws IOException, APDUException {
+        GlobalPlatformCommandSet cmdSet = new GlobalPlatformCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        cmdSet.openSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.deleteKeycardInstancesAndPackage();
+        Log.i(TAG, "instance and package deleted");
+    }
+
+    public void unpairAndDelete(final String pairingBase64, final String pin) throws IOException, APDUException {
+        unpair(pairingBase64, pin);
+        delete();
     }
 
 }
