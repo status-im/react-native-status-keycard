@@ -169,11 +169,11 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void getApplicationInfo(final Promise promise) {
+    public void getApplicationInfo(final String pairingBase64, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.getApplicationInfo());
+                    promise.resolve(smartCard.getApplicationInfo(pairingBase64));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -259,8 +259,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     @ReactMethod
     public void verifyPin(final String pairing, final String pin, final Promise promise) {
         try {
-            smartCard.verifyPin(pairing, pin);
-            promise.resolve(true);
+            promise.resolve(smartCard.verifyPin(pairing, pin));
         } catch (IOException | APDUException e) {
             Log.d(TAG, e.getMessage());
             promise.reject(e);
@@ -271,6 +270,50 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     public void changePin(final String pairing, final String currentPin, final String newPin, final Promise promise) {
         try {
             smartCard.changePin(pairing, currentPin, newPin);
+            promise.resolve(true);
+        } catch (IOException | APDUException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
+    public void unblockPin(final String pairing, final String puk, final String newPin, final Promise promise) {
+        try {
+            smartCard.unblockPin(pairing, puk, newPin);
+            promise.resolve(true);
+        } catch (IOException | APDUException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
+    public void unpair(final String pairing, final String pin, final Promise promise) {
+        try {
+            smartCard.unpair(pairing, pin);
+            promise.resolve(true);
+        } catch (IOException | APDUException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
+    public void delete(final Promise promise) {
+        try {
+            smartCard.delete();
+            promise.resolve(true);
+        } catch (IOException | APDUException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
+    public void unpairAndDelete(final String pairing, final String pin, final Promise promise) {
+        try {
+            smartCard.unpairAndDelete(pairing, pin);
             promise.resolve(true);
         } catch (IOException | APDUException e) {
             Log.d(TAG, e.getMessage());
