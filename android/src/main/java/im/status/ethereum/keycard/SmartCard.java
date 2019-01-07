@@ -53,6 +53,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         this.nfcAdapter = NfcAdapter.getDefaultAdapter(activity.getBaseContext());
         this.eventEmitter = new EventEmitter(reactContext);
         eventEmitter.emit("keyCardDidInit", null);
+        Log.d(TAG, "keyCardDidInit ..");
     }
 
     public String getName() {
