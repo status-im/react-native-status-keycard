@@ -55,12 +55,20 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
 
     @ReactMethod
     public void nfcIsSupported(final Promise promise) {
-        promise.resolve(smartCard.isNfcSupported());
+        if (smartCard != null) {
+            promise.resolve(smartCard.isNfcSupported());
+        } else {
+            promise.resolve(false);
+        }
     }
 
     @ReactMethod
     public void nfcIsEnabled(final Promise promise) {
-        promise.resolve(smartCard.isNfcEnabled());
+        if (smartCard != null) {
+            promise.resolve(smartCard.isNfcEnabled());
+        } else {
+            promise.resolve(false);
+        }
     }
 
     @ReactMethod
@@ -72,10 +80,14 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
 
     @ReactMethod
     public void start(final Promise promise) {
-        if (smartCard.start()) {
-            promise.resolve(true);
+        if (smartCard != null) {
+            if (smartCard.start()) {
+                promise.resolve(true);
+            } else {
+                promise.reject("Error", "Not supported on this device");
+            }
         } else {
-            promise.reject("Error", "Not supported on this device");
+            promise.reject("Error", "smartCard is not initialized yet");
         }
     }
 
