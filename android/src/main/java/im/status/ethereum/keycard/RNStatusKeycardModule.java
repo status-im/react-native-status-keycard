@@ -42,6 +42,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     public void onHostResume() {
         if (this.smartCard == null) {
             this.smartCard = new SmartCard(getCurrentActivity(), reactContext);
+            smartCard.start();
         }
     }
 

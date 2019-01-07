@@ -42,6 +42,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private CardChannel cardChannel;
     private EventEmitter eventEmitter;
     private static final String TAG = "SmartCard";
+    private Boolean started = false;
 
     private static final String WALLET_PATH = "m/44'/0'/0'/0/0";
     private static final String WHISPER_PATH = "m/43'/60'/1581'/0'/0";
@@ -65,15 +66,22 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public boolean start() {
-        this.cardManager.start();
-        if (this.nfcAdapter != null) {
-            IntentFilter filter = new IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
-            activity.registerReceiver(this, filter);
-            nfcAdapter.enableReaderMode(activity, this.cardManager, NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
-            return true;
+        if (!started) {
+
+            this.cardManager.start();
+            started = true;
+
+            if (this.nfcAdapter != null) {
+                IntentFilter filter = new IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
+                activity.registerReceiver(this, filter);
+                nfcAdapter.enableReaderMode(activity, this.cardManager, NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
+                return true;
+            } else {
+                log("not support in this device");
+                return false;
+            }
         } else {
-            log("not support in this device");
-            return false;
+            return true;
         }
     }
 
