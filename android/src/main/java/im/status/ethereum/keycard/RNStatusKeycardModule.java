@@ -24,11 +24,13 @@ import im.status.keycard.io.APDUException;
 public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
     private static final String TAG = "StatusKeycard";
     private SmartCard smartCard;
+    private final Promise<SmartCard> smartCardPromise;
     private final ReactApplicationContext reactContext;
 
     public RNStatusKeycardModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
+        this.smartCardPromise = new Promise<SmartCard>();
         reactContext.addLifecycleEventListener(this);
     }
 
@@ -42,6 +44,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         if (this.smartCard == null) {
             this.smartCard = new SmartCard(getCurrentActivity(), reactContext);
         }
+        this.smartCardPromise.resolve(smartCard);
     }
 
     @Override
@@ -55,20 +58,12 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
 
     @ReactMethod
     public void nfcIsSupported(final Promise promise) {
-        if (smartCard != null) {
-            promise.resolve(smartCard.isNfcSupported());
-        } else {
-            promise.resolve(false);
-        }
+        this.smartCardPromise.then(sc -> promise.resolve(sc.isNfcSupported()));
     }
 
     @ReactMethod
     public void nfcIsEnabled(final Promise promise) {
-        if (smartCard != null) {
-            promise.resolve(smartCard.isNfcEnabled());
-        } else {
-            promise.resolve(false);
-        }
+        this.smartCardPromise.then(sc -> promise.resolve(sc.isNfcEnabled()));
     }
 
     @ReactMethod
