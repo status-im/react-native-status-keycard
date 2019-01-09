@@ -23,6 +23,7 @@ import im.status.keycard.io.APDUException;
 
 public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
     private static final String TAG = "StatusKeycard";
+    private static final String CAP_FILENAME = "keycard.cap";
     private SmartCard smartCard;
     private final ReactApplicationContext reactContext;
 
@@ -223,7 +224,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    smartCard.installApplet(ctx.getAssets(), "wallet.cap");
+                    smartCard.installApplet(ctx.getAssets(), CAP_FILENAME);
                     promise.resolve(true);
                 } catch (IOException | APDUException | NoSuchAlgorithmException | InvalidKeySpecException e) {
                     Log.d(TAG, e.getMessage());
@@ -239,7 +240,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    SmartCardSecrets s = smartCard.installAppletAndInitCard(ctx.getAssets(), "wallet.cap");
+                    SmartCardSecrets s = smartCard.installAppletAndInitCard(ctx.getAssets(), CAP_FILENAME);
 
                     WritableMap params = Arguments.createMap();
                     params.putString("pin", s.getPin());
