@@ -81,19 +81,6 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void start(final Promise promise) {
-        if (smartCard != null) {
-            if (smartCard.start()) {
-                promise.resolve(true);
-            } else {
-                promise.reject("Error", "Not supported on this device");
-            }
-        } else {
-            promise.reject("Error", "smartCard is not initialized yet");
-        }
-    }
-
-    @ReactMethod
     public void init(final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
