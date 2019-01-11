@@ -38,9 +38,10 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private ReactContext reactContext;
     private NfcAdapter nfcAdapter;
     private CardChannel cardChannel;
-    private EventEmitter eventEmitter;
     private static final String TAG = "SmartCard";
     private Boolean started = false;
+
+    public EventEmitter eventEmitter;
 
     private static final String WALLET_PATH = "m/44'/0'/0'/0/0";
     private static final String WHISPER_PATH = "m/43'/60'/1581'/0'/0";
@@ -53,8 +54,6 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         this.reactContext = reactContext;
         this.nfcAdapter = NfcAdapter.getDefaultAdapter(activity.getBaseContext());
         this.eventEmitter = new EventEmitter(reactContext);
-        eventEmitter.emit("keyCardDidInit", null);
-        Log.d(TAG, "keyCardDidInit ..");
     }
 
     public String getName() {
