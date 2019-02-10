@@ -81,11 +81,11 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void init(final Promise promise) {
+    public void init(final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    SmartCardSecrets s = smartCard.init();
+                    SmartCardSecrets s = smartCard.init(pin);
 
                     WritableMap params = Arguments.createMap();
                     params.putString("pin", s.getPin());
@@ -223,12 +223,12 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void installAppletAndInitCard(final Promise promise) {
+    public void installAppletAndInitCard(final String pin, final Promise promise) {
         final ReactContext ctx = this.reactContext;
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    SmartCardSecrets s = smartCard.installAppletAndInitCard(ctx.getAssets(), CAP_FILENAME);
+                    SmartCardSecrets s = smartCard.installAppletAndInitCard(pin, ctx.getAssets(), CAP_FILENAME);
 
                     WritableMap params = Arguments.createMap();
                     params.putString("pin", s.getPin());
