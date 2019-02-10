@@ -122,13 +122,13 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         }
     }
 
-    public SmartCardSecrets init() throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public SmartCardSecrets init(final String userPin) throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
         eventEmitter.emit("keycardInstallationProgress", 0.90);
 
-        SmartCardSecrets s = SmartCardSecrets.generate();
+        SmartCardSecrets s = SmartCardSecrets.generate(userPin);
 
         eventEmitter.emit("keycardInstallationProgress", 0.93);
 
@@ -381,11 +381,11 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         installer.start();
     }
 
-    public SmartCardSecrets installAppletAndInitCard(AssetManager assets, String capPath) throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public SmartCardSecrets installAppletAndInitCard(final String userPin, AssetManager assets, String capPath) throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
         Installer installer = new Installer(this.cardChannel, assets, capPath, eventEmitter);
         installer.start();
 
-        return init();
+        return init(userPin);
     }
 
     public int verifyPin(final String pairingBase64, final String pin) throws IOException, APDUException {

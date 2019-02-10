@@ -28,11 +28,18 @@ public class SmartCardSecrets {
     }
 
     @NonNull
-    public static SmartCardSecrets generate() throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public static SmartCardSecrets generate(final String userPin) throws NoSuchAlgorithmException, InvalidKeySpecException {
         String pairingPassword = randomToken(12);
         long pinNumber = randomLong(PIN_BOUND);
         long pukNumber = randomLong(PUK_BOUND);
-        String pin = String.format("%06d", pinNumber);
+
+        String pin;
+        if (userPin.isEmpty()) {
+            pin = String.format("%06d", pinNumber);
+        } else {
+            pin = userPin;
+        }
+
         String puk = String.format("%012d", pukNumber);
 
         return new SmartCardSecrets(pin, puk, pairingPassword);
