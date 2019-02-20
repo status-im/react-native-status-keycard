@@ -213,23 +213,31 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
                 Log.i(TAG, "The card has no master key");
             }
 
+            Boolean isPaired = false;
+
             if (pairingBase64.length() > 0) {
-                Pairing pairing = new Pairing(pairingBase64);
-                cmdSet.setPairing(pairing);
+                try {
+                    Pairing pairing = new Pairing(pairingBase64);
+                    cmdSet.setPairing(pairing);
 
-                cmdSet.autoOpenSecureChannel();
-                Log.i(TAG, "secure channel opened");
+                    cmdSet.autoOpenSecureChannel();
+                    Log.i(TAG, "secure channel opened");
+                    isPaired = true;
 
-                ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
+                    ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
 
-                Log.i(TAG, "PIN retry counter: " + status.getPINRetryCount());
-                Log.i(TAG, "PUK retry counter: " + status.getPUKRetryCount());
+                    Log.i(TAG, "PIN retry counter: " + status.getPINRetryCount());
+                    Log.i(TAG, "PUK retry counter: " + status.getPUKRetryCount());
 
-                cardInfo.putInt("pin-retry-counter", status.getPINRetryCount());
-                cardInfo.putInt("puk-retry-counter", status.getPUKRetryCount());
+                    cardInfo.putInt("pin-retry-counter", status.getPINRetryCount());
+                    cardInfo.putInt("puk-retry-counter", status.getPUKRetryCount());
+                } catch (IOException e) {
+                    Log.i(TAG, "autoOpenSecureChannel failed: " + e.getMessage());
+                }
             }
 
             cardInfo.putBoolean("has-master-key?", info.hasMasterKey());
+            cardInfo.putBoolean("paired?", isPaired);
             cardInfo.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
             cardInfo.putString("secure-channel-pub-key", Hex.toHexString(info.getSecureChannelPubKey()));
             cardInfo.putString("app-version", info.getAppVersionString());
