@@ -141,7 +141,6 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
     public String pair(String pairingPassword) throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        log("Pairing password: " + pairingPassword);
         Log.i(TAG, "Applet selection successful");
 
         // First thing to do is selecting the applet on the card.
@@ -154,9 +153,6 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.autoPair(pairingPassword);
 
         Pairing pairing = cmdSet.getPairing();
-        log("Pairing index: " + pairing.getPairingIndex());
-        log("Pairing key: " + Hex.toHexString(pairing.getPairingKey()));
-        log("Pairing toBase64: " + pairing.toBase64());
 
         return pairing.toBase64();
     }
