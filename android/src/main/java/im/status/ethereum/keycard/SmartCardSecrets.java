@@ -3,6 +3,7 @@ package im.status.ethereum.keycard;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 import static android.util.Base64.NO_PADDING;
+import static android.util.Base64.NO_WRAP;
 
 import java.security.SecureRandom;
 
@@ -63,7 +64,7 @@ public class SmartCardSecrets {
     }
 
     public static String randomToken(int length) {
-        return Base64.encodeToString(randomBytes(length), NO_PADDING);
+        return Base64.encodeToString(randomBytes(length), (NO_PADDING | NO_WRAP));
     }
 
     public static byte[] randomBytes(int length) {
