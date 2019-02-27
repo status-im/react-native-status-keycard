@@ -44,7 +44,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private static final String TAG = "SmartCard";
     private Boolean started = false;
 
-    private static final String WALLET_PATH = "m/44'/0'/0'/0/0";
+    private static final String WALLET_PATH = "m/44'/60'/0'/0/0";
     private static final String WHISPER_PATH = "m/43'/60'/1581'/0'/0";
     private static final String ENCRYPTION_PATH = "m/43'/60'/1581'/1'/0";
 
@@ -263,10 +263,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         KeyPath currentPath = new KeyPath(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
         Log.i(TAG, "Current key path: " + currentPath);
 
-        if (!currentPath.toString().equals("m/44'/0'/0'/0/0")) {
-            cmdSet.deriveKey(path).checkOK();
-            Log.i(TAG, "Derived m/44'/0'/0'/0/0");
-        }
+        cmdSet.deriveKey(path).checkOK();
+        Log.i(TAG, "Derived " + path);
     }
 
     public String exportKey(final String pairingBase64, final String pin) throws IOException, APDUException {
