@@ -231,7 +231,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
                     cardInfo.putInt("pin-retry-counter", status.getPINRetryCount());
                     cardInfo.putInt("puk-retry-counter", status.getPUKRetryCount());
-                } catch (IOException e) {
+                } catch (IOException | IllegalArgumentException e) {
                     Log.i(TAG, "autoOpenSecureChannel failed: " + e.getMessage());
                 }
             }
