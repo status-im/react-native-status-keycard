@@ -298,25 +298,13 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
-
-        cmdSet.deriveKey(WALLET_PATH).checkOK();
-        Log.i(TAG, "Derived " + WALLET_PATH);
-
-        byte[] tlv = cmdSet.exportCurrentKey(true).checkOK().getData();
+        byte[] tlv = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
         BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
 
-
-        cmdSet.deriveKey(WHISPER_PATH).checkOK();
-        Log.i(TAG, "Derived " + WHISPER_PATH);
-
-        byte[] tlv2 = cmdSet.exportCurrentKey(false).checkOK().getData();
+        byte[] tlv2 = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
         BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlv2);
 
-
-        cmdSet.deriveKey(ENCRYPTION_PATH).checkOK();
-        Log.i(TAG, "Derived " + ENCRYPTION_PATH);
-
-        byte[] tlv3 = cmdSet.exportCurrentKey(false).checkOK().getData();
+        byte[] tlv3 = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
         BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlv3);
 
         WritableMap data = Arguments.createMap();

@@ -23,7 +23,7 @@ import im.status.keycard.io.APDUException;
 
 public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
     private static final String TAG = "StatusKeycard";
-    private static final String CAP_FILENAME = "keycard.cap";
+    private static final String CAP_FILENAME = "keycard_v2.1.cap";
     private SmartCard smartCard;
     private final ReactApplicationContext reactContext;
 
