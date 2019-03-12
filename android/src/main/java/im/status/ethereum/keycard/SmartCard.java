@@ -15,6 +15,7 @@ import android.util.Log;
 import com.facebook.react.bridge.*;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -461,7 +462,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         delete();
     }
 
-    public WritableMap sign(final String pairingBase64, final String pin, final String message) throws IOException, APDUException {
+    public String sign(final String pairingBase64, final String pin, final String message) throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
@@ -482,12 +483,16 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
         Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
 
-        WritableMap signatureData = Arguments.createMap();
-        signatureData.putString("r", Hex.toHexString(signature.getR()));
-        signatureData.putString("s", Hex.toHexString(signature.getS()));
-        signatureData.putInt("v", signature.getRecId());
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        return signatureData;
+        out.write(signature.getR());
+        out.write(signature.getS());
+        out.write(signature.getRecId());
+
+        String sig = Hex.toHexString(out.toByteArray());
+        Log.i(TAG, "Signature: " + sig);
+
+        return sig;
     }
 
 }
