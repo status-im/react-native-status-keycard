@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
+import im.status.keycard.applet.RecoverableSignature;
 import im.status.keycard.globalplatform.GlobalPlatformCommandSet;
 import im.status.keycard.io.APDUException;
 import im.status.keycard.io.CardChannel;
@@ -93,7 +94,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
     @Override
     public void onDisconnected() {
-        eventEmitter.emit( "keyCardOnDisconnected", null);
+        eventEmitter.emit("keyCardOnDisconnected", null);
     }
 
     @Override
@@ -458,6 +459,35 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     public void unpairAndDelete(final String pairingBase64, final String pin) throws IOException, APDUException {
         unpair(pairingBase64, pin);
         delete();
+    }
+
+    public WritableMap sign(final String pairingBase64, final String pin, final String message) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        byte[] hash = message.getBytes();
+        RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
+
+        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
+        Log.i(TAG, "Recovery ID: " + signature.getRecId());
+        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
+        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
+
+        WritableMap signatureData = Arguments.createMap();
+        signatureData.putString("r", Hex.toHexString(signature.getR()));
+        signatureData.putString("s", Hex.toHexString(signature.getS()));
+        signatureData.putInt("v", signature.getRecId());
+
+        return signatureData;
     }
 
 }
