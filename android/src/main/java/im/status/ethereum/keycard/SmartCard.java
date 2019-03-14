@@ -34,7 +34,7 @@ import im.status.keycard.applet.Pairing;
 import im.status.keycard.applet.ApplicationInfo;
 import im.status.keycard.applet.KeyPath;
 
-import org.spongycastle.util.encoders.Hex;
+import org.bouncycastle.util.encoders.Hex;
 
 public class SmartCard extends BroadcastReceiver implements CardListener {
     private NFCCardManager cardManager;
@@ -475,7 +475,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
-        byte[] hash = message.getBytes();
+        byte[] hash = Hex.decode(message);
         RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
 
         Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
