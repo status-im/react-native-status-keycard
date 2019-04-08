@@ -119,11 +119,11 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void generateMnemonic(final String pairing, final Promise promise) {
+    public void generateMnemonic(final String pairing, final String words, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.generateMnemonic(pairing));
+                    promise.resolve(smartCard.generateMnemonic(pairing, words));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
