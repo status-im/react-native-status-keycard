@@ -19,6 +19,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 import im.status.keycard.applet.RecoverableSignature;
 import im.status.keycard.globalplatform.GlobalPlatformCommandSet;
@@ -49,6 +51,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private static final String WALLET_PATH = "m/44'/60'/0'/0/0";
     private static final String WHISPER_PATH = "m/43'/60'/1581'/0'/0";
     private static final String ENCRYPTION_PATH = "m/43'/60'/1581'/1'/0";
+    private static final int WORDS_LIST_SIZE = 2048;
 
     public SmartCard(Activity activity, ReactContext reactContext) {
         this.cardManager = new NFCCardManager();
@@ -159,7 +162,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return pairing.toBase64();
     }
 
-    public String generateMnemonic(String pairingBase64) throws IOException, APDUException {
+    public String generateMnemonic(String pairingBase64, String words) throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
@@ -170,7 +173,16 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "secure channel opened");
 
         Mnemonic mnemonic = new Mnemonic(cmdSet.generateMnemonic(KeycardCommandSet.GENERATE_MNEMONIC_12_WORDS).checkOK().getData());
-        mnemonic.fetchBIP39EnglishWordlist();
+
+        Scanner scanner = new Scanner(words);
+        ArrayList<String> list = new ArrayList<>();
+        while(scanner.hasNextLine()) {
+            list.add(scanner.nextLine());
+        }
+        scanner.close();
+
+        String [] wordsList = list.toArray(new String[WORDS_LIST_SIZE]);
+        mnemonic.setWordlist(wordsList);
 
         return mnemonic.toMnemonicPhrase();
     }
