@@ -507,4 +507,28 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return sig;
     }
 
+    public String signPinless(final String message) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        byte[] hash = Hex.decode(message);
+        RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.signPinless(hash).checkOK().getData());
+
+        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
+        Log.i(TAG, "Recovery ID: " + signature.getRecId());
+        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
+        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        out.write(signature.getR());
+        out.write(signature.getS());
+        out.write(signature.getRecId());
+
+        String sig = Hex.toHexString(out.toByteArray());
+        Log.i(TAG, "Signature: " + sig);
+
+        return sig;
+    }
+
 }

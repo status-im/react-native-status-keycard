@@ -221,6 +221,20 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
+    public void signPinless(final String hash, final Promise promise) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    promise.resolve(smartCard.signPinless(hash));
+                } catch (IOException | APDUException e) {
+                    Log.d(TAG, e.getMessage());
+                    promise.reject(e);
+                }
+            }
+        }).start();
+    }
+
+    @ReactMethod
     public void installApplet(final Promise promise) {
         final ReactContext ctx = this.reactContext;
         new Thread(new Runnable() {
