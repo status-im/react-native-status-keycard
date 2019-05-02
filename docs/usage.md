@@ -3,28 +3,28 @@
 You need to import Keycard object to interact with the card:
 
 ```javascript
-import { RNStatusKeycard as Keycard} from "react-native-status-keycard";
+import Keycard from "react-native-status-keycard";
 ```
 
 ### Listen to keycard connect/disconnect events
 
 ```javascript
-import DeviceEventEmitter from "react-native";
+import { DeviceEventEmitter } from 'react-native';
 
 // Listen to connect/disconnect events
-DeviceEventEmitter.addListener("keyCardOnConnected", () => console.log("keycard connected"));
-DeviceEventEmitter.addListener("keyCardOnDisconnected", () => console.log("keycard disconnected"));
+componentDidMount () {
+  DeviceEventEmitter.addListener("keyCardOnConnected", () => console.log("keycard connected"));
+  DeviceEventEmitter.addListener("keyCardOnDisconnected", () => console.log("keycard disconnected"));
+}
 ```
 
 ### Errors
 
-As library uses Promises for method calls, use `.catch` to get the error object.
+Library uses Promises for method calls, use `.catch` to get the error object.
 
 Example:
 ```javascript
-Keycard.getApplicationInfo().
-then(info => console.log(info)).
-catch(error => console.log(error))
+Keycard.init("123456").then(info => console.log(info)).catch(error => console.log(error))
 ```
 
 Error object example:
@@ -47,7 +47,13 @@ Keycard.openNfcSettings();
 
 ### Get keycard information
 ```javascript
-Keycard.getApplicationInfo().then(info => console.log(info));
+// If keycard was not paired before, use empty string as pairing
+Keycard.getApplicationInfo("").then(info => console.log(info));
+
+// If keycard is paired, use pairing key
+const pairing = "AFFdkP01GywuaJRQkGDq+OyPHBE9nECEDDCfXhpfaxlo";
+Keycard.getApplicationInfo(pairing).then(info => console.log(info));
+
 ```
 
 Returns object like this:
@@ -77,9 +83,12 @@ Keycard.init(pin).then(secrets => console.log(secrets));
 ```
 
 ### Pair 
-Pairs keycard to device:
+Pairs keycard to device.
+
+Use password you get after keycard initialization (using `init`):
+
 ```javascript
-const password = "/xzPt+rEWVN3sMc5"
+const password = "/xzPt+rEWVN3sMc5";
 Keycard.pair(password).then(pairing => console.log(pairing));
 ```
 

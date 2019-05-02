@@ -18,8 +18,8 @@ Android is the only platform supported by now.
 
 #### Android
 
-1. Open up `android/app/src/main/java/[...]/MainActivity.java`
-  - Add `import com.reactlibrary.RNStatusKeycardPackage;` to the imports at the top of the file
+1. Open up `android/app/src/main/java/[...]/MainApplication.java`
+  - Add `import im.status.ethereum.keycard.RNStatusKeycardPackage;` to the imports at the top of the file
   - Add `new RNStatusKeycardPackage()` to the list returned by the `getPackages()` method
 2. Append the following lines to `android/settings.gradle`:
   	```
@@ -30,6 +30,9 @@ Android is the only platform supported by now.
   	```
       compile project(':react-native-status-keycard')
   	```
+4. Add `<uses-permission android:name="android.permission.NFC"/>` to `android/app/src/main/AndroidManifest.xml` to enable NFC permission.
+
+5. Make sure `minSdkVersion` is 18 in `android/build.gradle`.
 
 ## Usage
 
