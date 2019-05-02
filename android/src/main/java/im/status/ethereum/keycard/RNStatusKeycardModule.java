@@ -325,6 +325,17 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
+    public void removeKeyWithUnpair(final String pairing, final String pin, final Promise promise) {
+        try {
+            smartCard.removeKeyWithUnpair(pairing, pin);
+            promise.resolve(true);
+        } catch (IOException | APDUException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
     public void unpairAndDelete(final String pairing, final String pin, final Promise promise) {
         try {
             smartCard.unpairAndDelete(pairing, pin);

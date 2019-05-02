@@ -486,6 +486,11 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "key removed");
     }
 
+    public void removeKeyWithUnpair(final String pairingBase64, final String pin) throws IOException, APDUException {
+        removeKey(pairingBase64, pin);
+        unpair(pairingBase64, pin);
+    }
+
     public void unpairAndDelete(final String pairingBase64, final String pin) throws IOException, APDUException {
         unpair(pairingBase64, pin);
         delete();
