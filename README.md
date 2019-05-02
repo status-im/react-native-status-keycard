@@ -36,5 +36,6 @@ Android is the only platform supported by now.
 Take a look into [docs](./docs/usage.md)
 
 For more usage examples, please refer to https://github.com/status-im/status-react (assuming you can read Clojure)
+
 For Keycard API documention, please look into https://status.im/keycard_api/
   

@@ -119,7 +119,9 @@ Keycard.generateAndLoadKey(mnemonic, pairing, pin).then(data => console.log(data
 ```
 
 `wallet-address` is ethereum address of key with derivation path `m/44'/60'/0'/0/0`
+
 `whisper-address` is ethereum address of key with derivation path `m/43'/60'/1581'/0'/0`
+
 `encryption-public-key` is public key with derivation path `m/43'/60'/1581'/1'/0`
 
 More info about key derivation: https://status.im/keycard_api/sdk_derivation_sign.html
@@ -132,7 +134,7 @@ const pin = "123456";
 Keycard.getKeys(pairing, pin).then(data => console.log(data));
 ```
 
-`data` object contains keys:
+`data` object contains:
 ```javascript
 {"encryption-public-key""04d36d64bea374b917bc097646cb4e81061c7b0ab0872207480b886e66fb52d53774e303e2aa07a1107776f312b94663566765a8a75cf0a92b0851017b28b356a1",
 "whisper-public-key""04add221cb97dde8afbf3be27b0bfb3b6842071cb1052abfc3c34d45eba944dc10dcba5d4823fe69148ae17b12ed459237124365c2f46c2b46be9537ce6efa93c8",
@@ -149,11 +151,15 @@ const hash = "d81bbffb92157b72ceae3da72eb8224976ba42a49621822789edb0735a0e0395";
 Keycard.sign(pairing, pin, hash).then(sig => console.log(sig));
 ```
 
-Signature string returned. It consists of R,S and Recovery ID concatenated (R+S+V). 
+Signature string returned. Example: ` d684afb4ec9ce59f2d112a9c9400bd04f5a5b2518b251dba4ad135448f2e75367c2ea6412893d8001ed9c9efeb7c7d37bc11f7dfcf27c4818cf0861da199de1900`
+
+Signature consists of R, S and Recovery ID values concatenated (R+S+V). 
 For example:
 
 R: `79ef184db3150519a9719a38a7939fae39bbea088758745482cabe40127c7efb`
+
 S: `674932db2a7a5ae4b1d9d228b3542dba83ac9ac62524a45dd984e9650ceaa736`
+
 Recovery ID: `0`
 
 Would produce signature: `d684afb4ec9ce59f2d112a9c9400bd04f5a5b2518b251dba4ad135448f2e75367c2ea6412893d8001ed9c9efeb7c7d37bc11f7dfcf27c4818cf0861da199de1900`
