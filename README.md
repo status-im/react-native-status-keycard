@@ -1,5 +1,8 @@
 
-# react-native-status-keycard
+# React Native Status Keycard [![npm version](https://badge.fury.io/js/react-native-status-keycard.svg)](https://badge.fury.io/js/react-native-status-keycard)
+
+React Native library to interact with [Keycard](https://keycard.status.im/) using [Java SDK](https://github.com/status-im/status-keycard-java)
+
 
 ## Getting started
 
@@ -11,13 +14,7 @@
 
 ### Manual installation
 
-
-#### iOS
-
-1. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's name]`
-2. Go to `node_modules` ➜ `react-native-status-keycard` and add `RNStatusKeycard.xcodeproj`
-3. In XCode, in the project navigator, select your project. Add `libRNStatusKeycard.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`
-4. Run your project (`Cmd+R`)<
+Android is the only platform supported by now.
 
 #### Android
 
@@ -34,20 +31,10 @@
       compile project(':react-native-status-keycard')
   	```
 
-#### Windows
-[Read it! :D](https://github.com/ReactWindows/react-native)
-
-1. In Visual Studio add the `RNStatusKeycard.sln` in `node_modules/react-native-status-keycard/windows/RNStatusKeycard.sln` folder to their solution, reference from their app.
-2. Open up your `MainPage.cs` app
-  - Add `using Status.Keycard.RNStatusKeycard;` to the usings at the top of the file
-  - Add `new RNStatusKeycardPackage()` to the `List<IReactPackage>` returned by the `Packages` method
-
-
 ## Usage
-```javascript
-import RNStatusKeycard from 'react-native-status-keycard';
 
-// TODO: What to do with the module?
-RNStatusKeycard;
-```
+Take a look into [docs](./docs/usage.md)
+
+For more usage examples, please refer to https://github.com/status-im/status-react (assuming you can read Clojure)
+For Keycard API documention, please look into https://status.im/keycard_api/
   
