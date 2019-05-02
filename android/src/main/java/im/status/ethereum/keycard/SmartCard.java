@@ -469,6 +469,23 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "instance and package deleted");
     }
 
+    public void removeKey(final String pairingBase64, final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        cmdSet.removeKey();
+        Log.i(TAG, "key removed");
+    }
+
     public void unpairAndDelete(final String pairingBase64, final String pin) throws IOException, APDUException {
         unpair(pairingBase64, pin);
         delete();

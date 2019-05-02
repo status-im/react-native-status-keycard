@@ -23,7 +23,7 @@ import im.status.keycard.io.APDUException;
 
 public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
     private static final String TAG = "StatusKeycard";
-    private static final String CAP_FILENAME = "keycard_v2.1.cap";
+    private static final String CAP_FILENAME = "keycard_v2.2.1.cap";
     private SmartCard smartCard;
     private final ReactApplicationContext reactContext;
 
@@ -306,6 +306,17 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     public void delete(final Promise promise) {
         try {
             smartCard.delete();
+            promise.resolve(true);
+        } catch (IOException | APDUException e) {
+            Log.d(TAG, e.getMessage());
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
+    public void removeKey(final String pairing, final String pin, final Promise promise) {
+        try {
+            smartCard.removeKey(pairing, pin);
             promise.resolve(true);
         } catch (IOException | APDUException e) {
             Log.d(TAG, e.getMessage());
