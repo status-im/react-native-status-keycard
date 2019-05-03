@@ -75,7 +75,7 @@ const pin = "123456";
 Keycard.init(pin).then(secrets => console.log(secrets));
 ```
 
-`secrets` object contains PIN, PUK and Pairing password:
+`secrets` object contains PIN, PUK and Pairing password. You will need password to pair the card to device.
 ```javascript
 {"pin": "123456",
 "puk": "123456123456",
@@ -93,7 +93,7 @@ Keycard.pair(password).then(pairing => console.log(pairing));
 ```
 
 `pairing` object contains pairing key as base64 string. 
-You will need pairing key to open secure channel. More info on pairing https://status.im/keycard_api/sdk_securechannel.html
+You will need pairing key to open secure channel for most keycard operations. More info on pairing https://status.im/keycard_api/sdk_securechannel.html
 
 ### Generate mnemonic phrase
 ```javascript
@@ -145,10 +145,10 @@ Keycard.getKeys(pairing, pin).then(data => console.log(data));
 
 `data` object contains:
 ```javascript
-{"encryption-public-key""04d36d64bea374b917bc097646cb4e81061c7b0ab0872207480b886e66fb52d53774e303e2aa07a1107776f312b94663566765a8a75cf0a92b0851017b28b356a1",
-"whisper-public-key""04add221cb97dde8afbf3be27b0bfb3b6842071cb1052abfc3c34d45eba944dc10dcba5d4823fe69148ae17b12ed459237124365c2f46c2b46be9537ce6efa93c8",
-"whisper-private-key""073d77b952b3b92ba66947df53d03b23bc4cc8cf10cbba1060fe25a569c8ee6b",
-"wallet-address""9726cbc67d170307dd80af6416ebe844e7b8eb1c"}
+{"encryption-public-key": "04d36d64bea374b917bc097646cb4e81061c7b0ab0872207480b886e66fb52d53774e303e2aa07a1107776f312b94663566765a8a75cf0a92b0851017b28b356a1",
+"whisper-public-key": "04add221cb97dde8afbf3be27b0bfb3b6842071cb1052abfc3c34d45eba944dc10dcba5d4823fe69148ae17b12ed459237124365c2f46c2b46be9537ce6efa93c8",
+"whisper-private-key":"073d77b952b3b92ba66947df53d03b23bc4cc8cf10cbba1060fe25a569c8ee6b",
+"wallet-address":"9726cbc67d170307dd80af6416ebe844e7b8eb1c"}
 ```
 
 ### Sign
