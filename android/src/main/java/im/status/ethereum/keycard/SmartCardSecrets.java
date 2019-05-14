@@ -67,7 +67,7 @@ public class SmartCardSecrets {
     }
 
     public static String randomToken(int length) {
-        char[] possibleCharacters = "!#%+23456789:=?@ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
+        char[] possibleCharacters = "23456789ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
         String randomStr = RandomStringUtils.random(length, 0, possibleCharacters.length-1, false, false, possibleCharacters, new SecureRandom());
         return randomStr;
     }
