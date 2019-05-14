@@ -33,7 +33,7 @@ public class SmartCardSecrets {
 
     @NonNull
     public static SmartCardSecrets generate(final String userPin) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String pairingPassword = randomToken(12);
+        String pairingPassword = randomToken(16);
         long pinNumber = randomLong(PIN_BOUND);
         long pukNumber = randomLong(PUK_BOUND);
 
