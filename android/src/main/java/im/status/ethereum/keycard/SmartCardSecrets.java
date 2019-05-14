@@ -2,6 +2,9 @@ package im.status.ethereum.keycard;
 
 import android.support.annotation.NonNull;
 import android.util.Base64;
+
+import org.apache.commons.lang3.RandomStringUtils;
+
 import static android.util.Base64.NO_PADDING;
 import static android.util.Base64.NO_WRAP;
 
@@ -64,7 +67,9 @@ public class SmartCardSecrets {
     }
 
     public static String randomToken(int length) {
-        return Base64.encodeToString(randomBytes(length), (NO_PADDING | NO_WRAP));
+        char[] possibleCharacters = "!#%+23456789:=?@ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
+        String randomStr = RandomStringUtils.random(length, 0, possibleCharacters.length-1, false, false, possibleCharacters, new SecureRandom());
+        return randomStr;
     }
 
     public static byte[] randomBytes(int length) {
