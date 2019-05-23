@@ -151,6 +151,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         // First thing to do is selecting the applet on the card.
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
         Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
+        Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
         Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
         Log.i(TAG, "Application version: " + info.getAppVersionString());
         Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
@@ -217,15 +218,10 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         if (info.isInitializedCard()) {
             Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
+            Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
             Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
             Log.i(TAG, "Application version: " + info.getAppVersionString());
             Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
-
-            if (info.hasMasterKey()) {
-                Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
-            } else {
-                Log.i(TAG, "The card has no master key");
-            }
 
             Boolean isPaired = false;
 
@@ -253,6 +249,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
             cardInfo.putBoolean("has-master-key?", info.hasMasterKey());
             cardInfo.putBoolean("paired?", isPaired);
             cardInfo.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
+            cardInfo.putString("key-uid", Hex.toHexString(info.getKeyUID()));
             cardInfo.putString("secure-channel-pub-key", Hex.toHexString(info.getSecureChannelPubKey()));
             cardInfo.putString("app-version", info.getAppVersionString());
             cardInfo.putInt("free-pairing-slots", info.getFreePairingSlots());
@@ -376,6 +373,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
         data.putString("encryption-public-key", Hex.toHexString(encryptionKeyPair.getPublicKey()));
         data.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
+        data.putString("key-uid", Hex.toHexString(info.getKeyUID()));
 
         return data;
     }
