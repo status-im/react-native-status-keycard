@@ -62,10 +62,15 @@ Returns object like this:
 "app-version": "2.1",
 "secure-channel-pub-key": "042bd559a6eb5843491f79150ccba6bcc04c5b6691079f7c7a0e2eea659960db1df67079b27fdf5df56a1092029a157c0dce7000af4d7c4c1131421623c0150d1c",
 "instance-uid": "21c0ce19aa9a26efc02fd32078c08527",
+"key-uid": "a88d46499e5690c6ad637e243e83cf51be3e2c67e48324b2b2def3e6a0492576",
 "has-master-key?": false,
 "paired?": false,
 "initialized?": true}
 ```
+
+`instance-uid` The instance UID of the applet. This ID never changes for the lifetime of the applet.
+
+`key-uid` The UID of the master key on this card. Changes every time a different master key is stored. It has zero length if no key is on the card.
 
 ## Setup keycard
 
@@ -124,7 +129,8 @@ Keycard.generateAndLoadKey(mnemonic, pairing, pin).then(data => console.log(data
 "whisper-public-key": "04add221cb97dde8afbf3be27b0bfb3b6842071cb1052abfc3c34d45eba944dc10dcba5d4823fe69148ae17b12ed459237124365c2f46c2b46be9537ce6efa93c8",
 "whisper-private-key": "073d77b952b3b92ba66947df53d03b23bc4cc8cf10cbba1060fe25a569c8ee6b",
 "encryption-public-key": "04d36d64bea374b917bc097646cb4e81061c7b0ab0872207480b886e66fb52d53774e303e2aa07a1107776f312b94663566765a8a75cf0a92b0851017b28b356a1",
-"instance-uid": "21c0ce19aa9a26efc02fd32078c08527"}
+"instance-uid": "21c0ce19aa9a26efc02fd32078c08527",
+"key-uid":"a88d46499e5690c6ad637e243e83cf51be3e2c67e48324b2b2def3e6a0492576"}
 ```
 
 `wallet-address` is ethereum address of key with derivation path `m/44'/60'/0'/0/0`
