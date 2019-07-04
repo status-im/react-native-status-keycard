@@ -1,3 +1,4 @@
+import CoreNFC
 
 @objc(RNStatusKeycard)
 class RNStatusKeycard: NSObject {
@@ -10,14 +11,24 @@ class RNStatusKeycard: NSObject {
     func nfcIsSupported(
         _ resolve: RCTPromiseResolveBlock,
         rejecter reject: RCTPromiseRejectBlock) -> Void {
-        resolve(true)
+        if #available(iOS 9.0, *) {
+            resolve(true)
+        } else {
+            resolve(false)
+        }
+
     }
     
     @objc
     func nfcIsEnabled(
         _ resolve: RCTPromiseResolveBlock,
         rejecter reject: RCTPromiseRejectBlock) -> Void {
-        resolve(true)
+        if NFCNDEFReaderSession.readingAvailable {
+            resolve(true)
+        } else {
+            resolve(false)
+        }
+
     }
     
 }
