@@ -11,7 +11,7 @@ class RNStatusKeycard: NSObject {
     func nfcIsSupported(
         _ resolve: RCTPromiseResolveBlock,
         rejecter reject: RCTPromiseRejectBlock) -> Void {
-        if #available(iOS 9.0, *) {
+        if #available(iOS 13.0, *) {
             resolve(true)
         } else {
             resolve(false)
