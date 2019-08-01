@@ -125,6 +125,7 @@ Keycard.generateAndLoadKey(mnemonic, pairing, pin).then(data => console.log(data
 `data` object returned:
 ```javascript
 {"wallet-address": "9726cbc67d170307dd80af6416ebe844e7b8eb1c",
+"wallet-public-key": "04065670509d295cb8330e02a688eafe83dbbb317486062482725ba1036dba396d635e91afd9a9e7087c0dfeaccf30d2004d092ed250d62b5c75f8bb4c9326d409",
 "whisper-address": "438e576b638bff08b2872dd708cf0240811d79af",
 "whisper-public-key": "04add221cb97dde8afbf3be27b0bfb3b6842071cb1052abfc3c34d45eba944dc10dcba5d4823fe69148ae17b12ed459237124365c2f46c2b46be9537ce6efa93c8",
 "whisper-private-key": "073d77b952b3b92ba66947df53d03b23bc4cc8cf10cbba1060fe25a569c8ee6b",
