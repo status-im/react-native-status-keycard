@@ -155,7 +155,8 @@ Keycard.getKeys(pairing, pin).then(data => console.log(data));
 {"encryption-public-key": "04d36d64bea374b917bc097646cb4e81061c7b0ab0872207480b886e66fb52d53774e303e2aa07a1107776f312b94663566765a8a75cf0a92b0851017b28b356a1",
 "whisper-public-key": "04add221cb97dde8afbf3be27b0bfb3b6842071cb1052abfc3c34d45eba944dc10dcba5d4823fe69148ae17b12ed459237124365c2f46c2b46be9537ce6efa93c8",
 "whisper-private-key":"073d77b952b3b92ba66947df53d03b23bc4cc8cf10cbba1060fe25a569c8ee6b",
-"wallet-address":"9726cbc67d170307dd80af6416ebe844e7b8eb1c"}
+"wallet-address":"9726cbc67d170307dd80af6416ebe844e7b8eb1c"
+"whisper-address": "79db2df8445c2dab351ccbc7ed66220f7cb4636e"}
 ```
 
 ### Sign

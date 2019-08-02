@@ -320,6 +320,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         WritableMap data = Arguments.createMap();
         data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
+        data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
         data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
         data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
         data.putString("encryption-public-key", Hex.toHexString(encryptionKeyPair.getPublicKey()));
