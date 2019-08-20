@@ -124,7 +124,9 @@ Keycard.generateAndLoadKey(mnemonic, pairing, pin).then(data => console.log(data
 
 `data` object returned:
 ```javascript
-{"wallet-address": "9726cbc67d170307dd80af6416ebe844e7b8eb1c",
+{"address": "b19a57f4d3241e6a123ea332241d6f03790075b4",
+"public-key": "0427cc3998d0e0b8d56b64fad4d1f025914b8cb72558810c74dd34454fcd6907f6f7429a0726dceec9b93c9060103ff8b2e7daa1cb9a4dd62b7ae1ba2232709555",
+"wallet-address": "9726cbc67d170307dd80af6416ebe844e7b8eb1c",
 "wallet-public-key": "04065670509d295cb8330e02a688eafe83dbbb317486062482725ba1036dba396d635e91afd9a9e7087c0dfeaccf30d2004d092ed250d62b5c75f8bb4c9326d409",
 "whisper-address": "438e576b638bff08b2872dd708cf0240811d79af",
 "whisper-public-key": "04add221cb97dde8afbf3be27b0bfb3b6842071cb1052abfc3c34d45eba944dc10dcba5d4823fe69148ae17b12ed459237124365c2f46c2b46be9537ce6efa93c8",
@@ -133,6 +135,10 @@ Keycard.generateAndLoadKey(mnemonic, pairing, pin).then(data => console.log(data
 "instance-uid": "21c0ce19aa9a26efc02fd32078c08527",
 "key-uid":"a88d46499e5690c6ad637e243e83cf51be3e2c67e48324b2b2def3e6a0492576"}
 ```
+
+`address` is an address of root key
+
+`public-key` is public key of root key
 
 `wallet-address` is ethereum address of key with derivation path `m/44'/60'/0'/0/0`
 
