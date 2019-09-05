@@ -48,6 +48,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private static final String TAG = "SmartCard";
     private Boolean started = false;
 
+    private static final String ROOT_PATH = "m/44'/60'/0'/0";
     private static final String WALLET_PATH = "m/44'/60'/0'/0/0";
     private static final String WHISPER_PATH = "m/43'/60'/1581'/0'/0";
     private static final String ENCRYPTION_PATH = "m/43'/60'/1581'/1'/0";
@@ -309,7 +310,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
-        byte[] tlvRoot = cmdSet.exportCurrentKey(true).checkOK().getData();
+        byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, true, true).checkOK().getData();
         BIP32KeyPair keyPair = BIP32KeyPair.fromTLV(tlvRoot);
 
         byte[] tlv = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
