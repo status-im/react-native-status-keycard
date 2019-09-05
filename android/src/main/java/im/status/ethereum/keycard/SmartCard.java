@@ -309,6 +309,9 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
+        byte[] tlvRoot = cmdSet.exportCurrentKey(true).checkOK().getData();
+        BIP32KeyPair keyPair = BIP32KeyPair.fromTLV(tlvRoot);
+
         byte[] tlv = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
         BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
 
@@ -319,6 +322,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlv3);
 
         WritableMap data = Arguments.createMap();
+        data.putString("address", Hex.toHexString(keyPair.toEthereumAddress()));
+        data.putString("public-key", Hex.toHexString(keyPair.getPublicKey()));
         data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
         data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
         data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
