@@ -298,6 +298,24 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return Hex.toHexString(key);
     }
 
+    public String exportKeyWithPath(final String pairingBase64, final String pin, final String path) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        byte[] key = cmdSet.exportKey(path, false, true).checkOK().getData();
+
+        return Hex.toHexString(key);
+    }
+
     public WritableMap getKeys(final String pairingBase64, final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         cmdSet.select().checkOK();

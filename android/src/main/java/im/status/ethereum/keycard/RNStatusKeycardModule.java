@@ -205,6 +205,21 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
+    public void exportKeyWithPath(final String pairing, final String pin, final String path, final Promise promise) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    promise.resolve(smartCard.exportKeyWithPath(pairing, pin, path));
+                } catch (IOException | APDUException e) {
+                    Log.d(TAG, e.getMessage());
+                    promise.reject(e);
+                }
+            }
+        }).start();
+    }
+
+
+    @ReactMethod
     public void getKeys(final String pairing, final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
