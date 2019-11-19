@@ -48,6 +48,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private static final String TAG = "SmartCard";
     private Boolean started = false;
 
+    private static final String MASTER_PATH = "m";
     private static final String ROOT_PATH = "m/44'/60'/0'/0";
     private static final String WALLET_PATH = "m/44'/60'/0'/0/0";
     private static final String WHISPER_PATH = "m/43'/60'/1581'/0'/0";
@@ -310,6 +311,9 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
+        byte[] tlvMaster = cmdSet.exportKey(MASTER_PATH, false, true).checkOK().getData();
+        BIP32KeyPair masterPair = BIP32KeyPair.fromTLV(tlvMaster);
+
         byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, true, true).checkOK().getData();
         BIP32KeyPair keyPair = BIP32KeyPair.fromTLV(tlvRoot);
 
@@ -325,8 +329,10 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
         WritableMap data = Arguments.createMap();
-        data.putString("address", Hex.toHexString(keyPair.toEthereumAddress()));
-        data.putString("public-key", Hex.toHexString(keyPair.getPublicKey()));
+        data.putString("address", Hex.toHexString(masterPair.toEthereumAddress()));
+        data.putString("public-key", Hex.toHexString(masterPair.getPublicKey()));
+        data.putString("wallet-root-address", Hex.toHexString(keyPair.toEthereumAddress()));
+        data.putString("wallet-root-public-key", Hex.toHexString(keyPair.getPublicKey()));
         data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
         data.putString("wallet-public-key", Hex.toHexString(walletKeyPair.getPublicKey()));
         data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
@@ -385,8 +391,10 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
         WritableMap data = Arguments.createMap();
-        data.putString("address", Hex.toHexString(rootKeyPair.toEthereumAddress()));
-        data.putString("public-key", Hex.toHexString(rootKeyPair.getPublicKey()));
+        data.putString("address", Hex.toHexString(keyPair.toEthereumAddress()));
+        data.putString("public-key", Hex.toHexString(keyPair.getPublicKey()));
+        data.putString("wallet-root-address", Hex.toHexString(rootKeyPair.toEthereumAddress()));
+        data.putString("wallet-root-public-key", Hex.toHexString(rootKeyPair.getPublicKey()));
         data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
         data.putString("wallet-public-key", Hex.toHexString(walletKeyPair.getPublicKey()));
         data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
