@@ -311,7 +311,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
-        byte[] tlvMaster = cmdSet.exportKey(MASTER_PATH, false, true).checkOK().getData();
+        byte[] tlvMaster = cmdSet.exportKey(MASTER_PATH, true, true).checkOK().getData();
         BIP32KeyPair masterPair = BIP32KeyPair.fromTLV(tlvMaster);
 
         byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, true, true).checkOK().getData();
