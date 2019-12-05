@@ -31,6 +31,7 @@ import im.status.keycard.android.NFCCardManager;
 import im.status.keycard.applet.ApplicationStatus;
 import im.status.keycard.applet.BIP32KeyPair;
 import im.status.keycard.applet.Mnemonic;
+import im.status.keycard.applet.CashCommandSet;
 import im.status.keycard.applet.KeycardCommandSet;
 import im.status.keycard.applet.Pairing;
 import im.status.keycard.applet.ApplicationInfo;
@@ -556,4 +557,27 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return sig;
     }
 
+    public String signPinless(final String message) throws IOException, APDUException {
+        CashCommandSet cmdSet = new CashCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        byte[] hash = Hex.decode(message);
+        RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
+
+        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
+        Log.i(TAG, "Recovery ID: " + signature.getRecId());
+        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
+        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        out.write(signature.getR());
+        out.write(signature.getS());
+        out.write(signature.getRecId());
+
+        String sig = Hex.toHexString(out.toByteArray());
+        Log.i(TAG, "Signature: " + sig);
+
+        return sig;
+    }
 }
