@@ -233,6 +233,20 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
+    public void signWithPath(final String pairing, final String pin, final String path, final String hash, final Promise promise) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    promise.resolve(smartCard.signWithPath(pairing, pin, path, hash));
+                } catch (IOException | APDUException e) {
+                    Log.d(TAG, e.getMessage());
+                    promise.reject(e);
+                }
+            }
+        }).start();
+    }
+
+    @ReactMethod
     public void signPinless(final String hash, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
