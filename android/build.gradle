@@ -41,5 +41,5 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'
     implementation 'org.bouncycastle:bcprov-jdk15on:1.60'
     implementation 'org.apache.commons:commons-lang3:3.9'
-    implementation 'com.github.status-im.status-keycard-java:android:2.2.1'
+    implementation 'com.github.status-im.status-keycard-java:android:3.0.1'
 }
