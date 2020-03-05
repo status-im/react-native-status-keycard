@@ -110,9 +110,13 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         boolean on = false;
         switch (state) {
             case NfcAdapter.STATE_ON:
+                eventEmitter.emit("keyCardOnNFCEnabled", null);
                 log("NFC ON");
+                break;
             case NfcAdapter.STATE_OFF:
+                eventEmitter.emit("keyCardOnNFCDisabled", null);
                 log("NFC OFF");
+                break;
             default:
                 log("other");
         }
