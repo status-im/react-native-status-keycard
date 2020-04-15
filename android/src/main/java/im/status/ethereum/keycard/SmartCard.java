@@ -548,6 +548,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
     public String sign(final String pairingBase64, final String pin, final String message) throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        KeyPath currentPath = new KeyPath(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
+        Log.i(TAG, "Signing with current key path: " + currentPath);
         cmdSet.select().checkOK();
 
         Pairing pairing = new Pairing(pairingBase64);
