@@ -281,8 +281,10 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         KeyPath currentPath = new KeyPath(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
         Log.i(TAG, "Current key path: " + currentPath);
 
-        cmdSet.deriveKey(path).checkOK();
-        Log.i(TAG, "Derived " + path);
+        if (!currentPath.toString().equals(path)) {
+            cmdSet.deriveKey(path).checkOK();
+            Log.i(TAG, "Derived " + path);
+        }
     }
 
     public String exportKey(final String pairingBase64, final String pin) throws IOException, APDUException {
@@ -334,20 +336,20 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
-        byte[] tlvMaster = cmdSet.exportKey(MASTER_PATH, true, true).checkOK().getData();
+        byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
+        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
+
+        byte[] tlvMaster = cmdSet.exportKey(MASTER_PATH, false, true).checkOK().getData();
         BIP32KeyPair masterPair = BIP32KeyPair.fromTLV(tlvMaster);
 
-        byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, true, true).checkOK().getData();
+        byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, false, true).checkOK().getData();
         BIP32KeyPair keyPair = BIP32KeyPair.fromTLV(tlvRoot);
 
-        byte[] tlv = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
-        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
+        byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
+        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlvWhisper);
 
-        byte[] tlv2 = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
-        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlv2);
-
-        byte[] tlv3 = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
-        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlv3);
+        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
+        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlvWallet);
 
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
@@ -384,32 +386,24 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         byte[] seed = Mnemonic.toBinarySeed(mnemonic, "");
         BIP32KeyPair keyPair = BIP32KeyPair.fromBinarySeed(seed);
 
-        cmdSet.loadKey(keyPair);
+        cmdSet.loadKey(keyPair).checkOK();
         log("keypair loaded to card");
 
-        cmdSet.deriveKey(ROOT_PATH).checkOK();
+        byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, false, true).checkOK().getData();
         Log.i(TAG, "Derived " + ROOT_PATH);
-
-        byte[] tlvRoot = cmdSet.exportCurrentKey(true).checkOK().getData();
         BIP32KeyPair rootKeyPair = BIP32KeyPair.fromTLV(tlvRoot);
 
-        cmdSet.deriveKey(WALLET_PATH).checkOK();
-        Log.i(TAG, "Derived " + WALLET_PATH);
-
-        byte[] tlv = cmdSet.exportCurrentKey(true).checkOK().getData();
-        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
-
-        cmdSet.deriveKey(WHISPER_PATH).checkOK();
+        byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
         Log.i(TAG, "Derived " + WHISPER_PATH);
+        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlvWhisper);
 
-        byte[] tlv2 = cmdSet.exportCurrentKey(false).checkOK().getData();
-        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlv2);
-
-        cmdSet.deriveKey(ENCRYPTION_PATH).checkOK();
+        byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
         Log.i(TAG, "Derived " + ENCRYPTION_PATH);
+        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
 
-        byte[] tlv3 = cmdSet.exportCurrentKey(false).checkOK().getData();
-        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlv3);
+        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
+        Log.i(TAG, "Derived " + WALLET_PATH);
+        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlvWallet);
 
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
@@ -561,6 +555,39 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         byte[] hash = Hex.decode(message);
         RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
+
+        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
+        Log.i(TAG, "Recovery ID: " + signature.getRecId());
+        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
+        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        out.write(signature.getR());
+        out.write(signature.getS());
+        out.write(signature.getRecId());
+
+        String sig = Hex.toHexString(out.toByteArray());
+        Log.i(TAG, "Signature: " + sig);
+
+        return sig;
+    }
+
+    public String signWithPath(final String pairingBase64, final String pin, final String path, final String message) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        byte[] hash = Hex.decode(message);
+        RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.signWithPath(hash, path, false).checkOK().getData());
 
         Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
         Log.i(TAG, "Recovery ID: " + signature.getRecId());
