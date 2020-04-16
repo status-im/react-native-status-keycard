@@ -393,12 +393,6 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         byte[] tlvRoot = cmdSet.exportCurrentKey(true).checkOK().getData();
         BIP32KeyPair rootKeyPair = BIP32KeyPair.fromTLV(tlvRoot);
 
-        cmdSet.deriveKey(WALLET_PATH).checkOK();
-        Log.i(TAG, "Derived " + WALLET_PATH);
-
-        byte[] tlv = cmdSet.exportCurrentKey(true).checkOK().getData();
-        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
-
         cmdSet.deriveKey(WHISPER_PATH).checkOK();
         Log.i(TAG, "Derived " + WHISPER_PATH);
 
@@ -410,6 +404,14 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         byte[] tlv3 = cmdSet.exportCurrentKey(false).checkOK().getData();
         BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlv3);
+
+        // Wallet's key should be derived last of all to make sure it is used
+        // as a current key for signing.
+        cmdSet.deriveKey(WALLET_PATH).checkOK();
+        Log.i(TAG, "Derived " + WALLET_PATH);
+
+        byte[] tlv = cmdSet.exportCurrentKey(true).checkOK().getData();
+        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
 
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
