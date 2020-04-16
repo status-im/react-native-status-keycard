@@ -49,6 +49,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private static final String TAG = "SmartCard";
     private Boolean started = false;
 
+    private static final String MASTER_PATH = "m";
+    private static final String ROOT_PATH = "m/44'/60'/0'/0";
     private static final String WALLET_PATH = "m/44'/60'/0'/0/0";
     private static final String WHISPER_PATH = "m/43'/60'/1581'/0'/0";
     private static final String ENCRYPTION_PATH = "m/43'/60'/1581'/1'/0";
@@ -312,12 +314,33 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
-        byte[] tlv = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
-        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlv);
+        byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
+        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
+
+        byte[] tlvMaster = cmdSet.exportKey(MASTER_PATH, false, true).checkOK().getData();
+        BIP32KeyPair masterPair = BIP32KeyPair.fromTLV(tlvMaster);
+
+        byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, false, true).checkOK().getData();
+        BIP32KeyPair keyPair = BIP32KeyPair.fromTLV(tlvRoot);
+
+        byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
+        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlvWhisper);
+
+        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
+        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlvWallet);
 
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
         WritableMap data = Arguments.createMap();
+        data.putString("address", Hex.toHexString(masterPair.toEthereumAddress()));
+        data.putString("public-key", Hex.toHexString(masterPair.getPublicKey()));
+        data.putString("wallet-root-address", Hex.toHexString(keyPair.toEthereumAddress()));
+        data.putString("wallet-root-public-key", Hex.toHexString(keyPair.getPublicKey()));
+        data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
+        data.putString("wallet-public-key", Hex.toHexString(walletKeyPair.getPublicKey()));
+        data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
+        data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
+        data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
         data.putString("encryption-public-key", Hex.toHexString(encryptionKeyPair.getPublicKey()));
         data.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
         data.putString("key-uid", Hex.toHexString(info.getKeyUID()));
@@ -344,21 +367,29 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.loadKey(keyPair).checkOK();
         log("keypair loaded to card");
 
-        byte[] tlv = cmdSet.exportKey(WALLET_PATH, false, true).checkOK().getData();
-        Log.i(TAG, "Derived " + WALLET_PATH);
-        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlv);
+        byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, false, true).checkOK().getData();
+        Log.i(TAG, "Derived " + ROOT_PATH);
+        BIP32KeyPair rootKeyPair = BIP32KeyPair.fromTLV(tlvRoot);
 
-        byte[] tlv2 = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
+        byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
         Log.i(TAG, "Derived " + WHISPER_PATH);
-        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlv2);
+        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlvWhisper);
 
-        byte[] tlv3 = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
+        byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
         Log.i(TAG, "Derived " + ENCRYPTION_PATH);
-        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlv3);
+        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
+
+        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
+        Log.i(TAG, "Derived " + WALLET_PATH);
+        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlvWallet);
 
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
         WritableMap data = Arguments.createMap();
+        data.putString("address", Hex.toHexString(keyPair.toEthereumAddress()));
+        data.putString("public-key", Hex.toHexString(keyPair.getPublicKey()));
+        data.putString("wallet-root-address", Hex.toHexString(rootKeyPair.toEthereumAddress()));
+        data.putString("wallet-root-public-key", Hex.toHexString(rootKeyPair.getPublicKey()));
         data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
         data.putString("wallet-public-key", Hex.toHexString(walletKeyPair.getPublicKey()));
         data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
