@@ -1,28 +1,19 @@
 require "json"
 
-package = JSON.parse(File.read(File.join(__dir__, "package.json")))
+pkg = JSON.parse(File.read("package.json"))
 
 Pod::Spec.new do |s|
+  s.name         = pkg["name"]
   s.name         = "react-native-status-keycard"
-  s.version      = package["version"]
-  s.summary      = package["description"]
-  s.description  = <<-DESC
-                  react-native-status-keycard
-                   DESC
-  s.homepage     = "https://github.com/github_account/react-native-status-keycard"
-  # brief license entry:
-  s.license      = "MIT"
-  # optional - use expanded license entry instead:
-  # s.license    = { :type => "MIT", :file => "LICENSE" }
-  s.authors      = { "Your Name" => "yourname@email.com" }
-  s.platforms    = { :ios => "9.0" }
-  s.source       = { :git => "https://github.com/github_account/react-native-status-keycard.git", :tag => "#{s.version}" }
-
-  s.source_files = "ios/**/*.{h,m,swift}"
+  s.version      = pkg["version"]
+  s.summary      = pkg["description"]
   s.requires_arc = true
-
-  s.dependency "React"
-  # ...
-  # s.dependency "..."
+  s.license      = pkg["license"]
+  s.homepage     = pkg["homepage"]
+  s.author       = pkg["author"]
+  s.source       = { :git => pkg["repository"]["url"],
+                     :tag => "v" + pkg["version"] }
+  s.source_files = 'ios/**/*.{h,m}'
+  s.platform     = :ios, "8.0"
+  s.dependency 'React/Core'
 end
-
