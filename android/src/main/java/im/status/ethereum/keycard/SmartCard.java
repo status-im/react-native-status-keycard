@@ -110,9 +110,13 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         boolean on = false;
         switch (state) {
             case NfcAdapter.STATE_ON:
+                eventEmitter.emit("keyCardOnNFCEnabled", null);
                 log("NFC ON");
+                break;
             case NfcAdapter.STATE_OFF:
+                eventEmitter.emit("keyCardOnNFCDisabled", null);
                 log("NFC OFF");
+                break;
             default:
                 log("other");
         }
@@ -297,6 +301,24 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "pin verified");
 
         byte[] key = cmdSet.exportCurrentKey(true).checkOK().getData();
+
+        return Hex.toHexString(key);
+    }
+
+    public String exportKeyWithPath(final String pairingBase64, final String pin, final String path) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        byte[] key = BIP32KeyPair.fromTLV(cmdSet.exportKey(path, false, true).checkOK().getData()).getPublicKey();
 
         return Hex.toHexString(key);
     }

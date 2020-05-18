@@ -11,10 +11,12 @@ import Keycard from "react-native-status-keycard";
 ```javascript
 import { DeviceEventEmitter } from 'react-native';
 
-// Listen to connect/disconnect events
+// Listen to connect/disconnect and nfc events
 componentDidMount () {
   DeviceEventEmitter.addListener("keyCardOnConnected", () => console.log("keycard connected"));
   DeviceEventEmitter.addListener("keyCardOnDisconnected", () => console.log("keycard disconnected"));
+  DeviceEventEmitter.addListener("keyCardOnNFCEnabled", () => console.log("nfc enabled"));
+  DeviceEventEmitter.addListener("keyCardOnNFCDisabled", () => console.log("nfc disabled"));
 }
 ```
 
