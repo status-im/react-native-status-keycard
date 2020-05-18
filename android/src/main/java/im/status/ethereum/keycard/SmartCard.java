@@ -565,7 +565,18 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "pin verified");
 
         byte[] hash = Hex.decode(message);
-        RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.signWithPath(hash, path, false).checkOK().getData());
+
+        RecoverableSignature signature;
+
+        if (cmdSet.getApplicationInfo().getAppVersion() < 0x0202) {
+            String actualPath = new KeyPath(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData()).toString();
+            if (!actualPath.equals(path)) {
+                cmdSet.deriveKey(path).checkOK();
+            }
+            signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
+        } else {
+            signature = new RecoverableSignature(hash, cmdSet.signWithPath(hash, path, false).checkOK().getData());
+        }
 
         Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
         Log.i(TAG, "Recovery ID: " + signature.getRecId());
