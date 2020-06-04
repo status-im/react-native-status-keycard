@@ -233,14 +233,18 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
             Boolean isPaired = false;
 
             if (pairingBase64.length() > 0) {
-                try {
-                    Pairing pairing = new Pairing(pairingBase64);
-                    cmdSet.setPairing(pairing);
+                Pairing pairing = new Pairing(pairingBase64);
+                cmdSet.setPairing(pairing);
 
+                try {
                     cmdSet.autoOpenSecureChannel();
                     Log.i(TAG, "secure channel opened");
                     isPaired = true;
+                } catch(APDUException e) {
+                    Log.i(TAG, "autoOpenSecureChannel failed: " + e.getMessage());
+                }
 
+                if (isPaired) {
                     ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
 
                     Log.i(TAG, "PIN retry counter: " + status.getPINRetryCount());
@@ -248,8 +252,6 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
                     cardInfo.putInt("pin-retry-counter", status.getPINRetryCount());
                     cardInfo.putInt("puk-retry-counter", status.getPUKRetryCount());
-                } catch (IOException | IllegalArgumentException e) {
-                    Log.i(TAG, "autoOpenSecureChannel failed: " + e.getMessage());
                 }
             }
 
