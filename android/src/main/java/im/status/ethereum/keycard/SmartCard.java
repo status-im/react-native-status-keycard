@@ -41,8 +41,6 @@ import org.bouncycastle.util.encoders.Hex;
 
 public class SmartCard extends BroadcastReceiver implements CardListener {
     private NFCCardManager cardManager;
-    private Activity activity;
-    private ReactContext reactContext;
     private NfcAdapter nfcAdapter;
     private CardChannel cardChannel;
     private EventEmitter eventEmitter;
@@ -56,12 +54,9 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private static final String ENCRYPTION_PATH = "m/43'/60'/1581'/1'/0";
     private static final int WORDS_LIST_SIZE = 2048;
 
-    public SmartCard(Activity activity, ReactContext reactContext) {
+    public SmartCard(ReactContext reactContext) {
         this.cardManager = new NFCCardManager();
         this.cardManager.setCardListener(this);
-        this.activity = activity;
-        this.reactContext = reactContext;
-        this.nfcAdapter = NfcAdapter.getDefaultAdapter(activity.getBaseContext());
         this.eventEmitter = new EventEmitter(reactContext);
     }
 
@@ -73,23 +68,31 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.d(TAG, s);
     }
 
-    public boolean start() {
-        if (!started) {
+    public boolean start(Activity activity) {
+        if(activity == null) {
+            return false;
+        }
 
+        if (!started) {
+            this.nfcAdapter = NfcAdapter.getDefaultAdapter(activity.getBaseContext());
             this.cardManager.start();
             started = true;
+        }
 
-            if (this.nfcAdapter != null) {
-                IntentFilter filter = new IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
-                activity.registerReceiver(this, filter);
-                nfcAdapter.enableReaderMode(activity, this.cardManager, NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
-                return true;
-            } else {
-                log("not support in this device");
-                return false;
-            }
-        } else {
+        if (this.nfcAdapter != null) {
+            IntentFilter filter = new IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
+            activity.registerReceiver(this, filter);
+            nfcAdapter.enableReaderMode(activity, this.cardManager, NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
             return true;
+        } else {
+            log("not support in this device");
+            return false;
+        }
+    }
+
+    public void stop(Activity activity) {
+        if (activity != null && nfcAdapter != null) {
+            nfcAdapter.disableReaderMode(activity);
         }
     }
 
@@ -122,8 +125,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         }
     }
 
-    public boolean isNfcSupported() {
-        return activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_NFC);
+    public boolean isNfcSupported(Activity activity) {
+        return activity != null && activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_NFC);
     }
 
     public boolean isNfcEnabled() {
