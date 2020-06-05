@@ -41,24 +41,26 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     @Override
     public void onHostResume() {
         if (this.smartCard == null) {
-            this.smartCard = new SmartCard(getCurrentActivity(), reactContext);
-            smartCard.start();
+            this.smartCard = new SmartCard(reactContext);
         }
+
+        smartCard.start(getCurrentActivity());
     }
 
     @Override
     public void onHostPause() {
+        smartCard.stop(getCurrentActivity());
     }
 
     @Override
     public void onHostDestroy() {
-
+        smartCard.stop(getCurrentActivity());
     }
 
     @ReactMethod
     public void nfcIsSupported(final Promise promise) {
         if (smartCard != null) {
-            promise.resolve(smartCard.isNfcSupported());
+            promise.resolve(smartCard.isNfcSupported(getCurrentActivity()));
         } else {
             promise.resolve(false);
         }
