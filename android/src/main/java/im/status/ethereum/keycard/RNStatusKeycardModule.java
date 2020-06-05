@@ -49,16 +49,10 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
 
     @Override
     public void onHostPause() {
-        if (this.smartCard != null) {
-            smartCard.stop(getCurrentActivity());
-        }
     }
 
     @Override
     public void onHostDestroy() {
-        if (this.smartCard != null) {
-            smartCard.stop(getCurrentActivity());
-        }
     }
 
     @ReactMethod
