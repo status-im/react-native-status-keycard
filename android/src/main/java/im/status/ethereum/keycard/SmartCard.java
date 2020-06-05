@@ -91,7 +91,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public void stop(Activity activity) {
-        if (activity != null) {
+        if (activity != null && nfcAdapter != null) {
             nfcAdapter.disableReaderMode(activity);
         }
     }
@@ -126,7 +126,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     public boolean isNfcSupported(Activity activity) {
-        return activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_NFC);
+        return activity != null && activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_NFC);
     }
 
     public boolean isNfcEnabled() {
