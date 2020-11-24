@@ -1,4 +1,6 @@
+/example
 
+#
 # OSX
 #
 .DS_Store
@@ -8,7 +10,7 @@
 node_modules/
 npm-debug.log
 yarn-error.log
-  
+
 
 # Xcode
 #
@@ -29,7 +31,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
-      
+
 
 # Android/IntelliJ
 #
@@ -43,4 +45,5 @@ local.properties
 buck-out/
 \.buckd/
 *.keystore
-      
+
+/lib
