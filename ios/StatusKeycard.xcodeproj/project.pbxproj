@@ -3,15 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-
-
-		F4FF95D7245B92E800C19C63 /*  StatusKeycard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /*  StatusKeycard.swift */; };
-
-		5E555C0D2413F4C50049A1A2 /* StatusKeycard.mm in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* StatusKeycard.mm */; };
+		65B8C62E256D27DB00C6A3EE /* Keycard in Frameworks */ = {isa = PBXBuildFile; productRef = 65B8C62D256D27DB00C6A3EE /* Keycard */; };
+		F4FF95D7245B92E800C19C63 /* StatusKeycard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* StatusKeycard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,12 +25,9 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libStatusKeycard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStatusKeycard.a; sourceTree = BUILT_PRODUCTS_DIR; };
-
-
 		B3E7B5891CC2AC0600A0062D /* StatusKeycard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StatusKeycard.m; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* StatusKeycard-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StatusKeycard-Bridging-Header.h"; sourceTree = "<group>"; };
 		F4FF95D6245B92E800C19C63 /* StatusKeycard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusKeycard.swift; sourceTree = "<group>"; };
-
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +35,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65B8C62E256D27DB00C6A3EE /* Keycard in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,12 +53,9 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-
-
 				F4FF95D6245B92E800C19C63 /* StatusKeycard.swift */,
 				B3E7B5891CC2AC0600A0062D /* StatusKeycard.m */,
 				F4FF95D5245B92E700C19C63 /* StatusKeycard-Bridging-Header.h */,
-
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -84,6 +76,9 @@
 			dependencies = (
 			);
 			name = StatusKeycard;
+			packageProductDependencies = (
+				65B8C62D256D27DB00C6A3EE /* Keycard */,
+			);
 			productName = RCTDataManager;
 			productReference = 134814201AA4EA6300B7C361 /* libStatusKeycard.a */;
 			productType = "com.apple.product-type.library.static";
@@ -111,6 +106,9 @@
 				en,
 			);
 			mainGroup = 58B511D21A9E6C8500147676;
+			packageReferences = (
+				65B8C62C256D27DB00C6A3EE /* XCRemoteSwiftPackageReference "Keycard" */,
+			);
 			productRefGroup = 58B511D21A9E6C8500147676;
 			projectDirPath = "";
 			projectRoot = "";
@@ -125,11 +123,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-
-
 				F4FF95D7245B92E800C19C63 /* StatusKeycard.swift in Sources */,
-				B3E7B58A1CC2AC0600A0062D /* StatusKeycard.m in Sources */,
-
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,11 +236,9 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = StatusKeycard;
 				SKIP_INSTALL = YES;
-
 				SWIFT_OBJC_BRIDGING_HEADER = "StatusKeycard-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-
 			};
 			name = Debug;
 		};
@@ -263,10 +255,8 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = StatusKeycard;
 				SKIP_INSTALL = YES;
-
 				SWIFT_OBJC_BRIDGING_HEADER = "StatusKeycard-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-
 			};
 			name = Release;
 		};
@@ -292,6 +282,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		65B8C62C256D27DB00C6A3EE /* XCRemoteSwiftPackageReference "Keycard" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/status-im/Keycard.swift";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		65B8C62D256D27DB00C6A3EE /* Keycard */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 65B8C62C256D27DB00C6A3EE /* XCRemoteSwiftPackageReference "Keycard" */;
+			productName = Keycard;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 58B511D31A9E6C8500147676 /* Project object */;
 }
