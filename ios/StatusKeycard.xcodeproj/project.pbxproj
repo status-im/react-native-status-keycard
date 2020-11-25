@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		65B8C62E256D27DB00C6A3EE /* Keycard in Frameworks */ = {isa = PBXBuildFile; productRef = 65B8C62D256D27DB00C6A3EE /* Keycard */; };
+		65B8C633256D352A00C6A3EE /* Keycard in Frameworks */ = {isa = PBXBuildFile; productRef = 65B8C632256D352A00C6A3EE /* Keycard */; };
 		F4FF95D7245B92E800C19C63 /* StatusKeycard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* StatusKeycard.swift */; };
 /* End PBXBuildFile section */
 
@@ -35,7 +35,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				65B8C62E256D27DB00C6A3EE /* Keycard in Frameworks */,
+				65B8C633256D352A00C6A3EE /* Keycard in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,7 +77,7 @@
 			);
 			name = StatusKeycard;
 			packageProductDependencies = (
-				65B8C62D256D27DB00C6A3EE /* Keycard */,
+				65B8C632256D352A00C6A3EE /* Keycard */,
 			);
 			productName = RCTDataManager;
 			productReference = 134814201AA4EA6300B7C361 /* libStatusKeycard.a */;
@@ -107,7 +107,7 @@
 			);
 			mainGroup = 58B511D21A9E6C8500147676;
 			packageReferences = (
-				65B8C62C256D27DB00C6A3EE /* XCRemoteSwiftPackageReference "Keycard" */,
+				65B8C631256D352A00C6A3EE /* XCRemoteSwiftPackageReference "Keycard" */,
 			);
 			productRefGroup = 58B511D21A9E6C8500147676;
 			projectDirPath = "";
@@ -284,7 +284,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		65B8C62C256D27DB00C6A3EE /* XCRemoteSwiftPackageReference "Keycard" */ = {
+		65B8C631256D352A00C6A3EE /* XCRemoteSwiftPackageReference "Keycard" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/status-im/Keycard.swift";
 			requirement = {
@@ -295,9 +295,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		65B8C62D256D27DB00C6A3EE /* Keycard */ = {
+		65B8C632256D352A00C6A3EE /* Keycard */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 65B8C62C256D27DB00C6A3EE /* XCRemoteSwiftPackageReference "Keycard" */;
+			package = 65B8C631256D352A00C6A3EE /* XCRemoteSwiftPackageReference "Keycard" */;
 			productName = Keycard;
 		};
 /* End XCSwiftPackageProductDependency section */
