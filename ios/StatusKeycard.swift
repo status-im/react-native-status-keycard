@@ -7,11 +7,6 @@ class StatusKeycard: NSObject {
     @available(iOS 13.0, *)
     private(set) lazy var keycardController: KeycardController? = nil
 
-    @objc(multiply:withB:withResolver:withRejecter:)
-    func multiply(a: Float, b: Float, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
-        resolve(a*b)
-    }
-
     @objc
     func select() {
       if #available(iOS 13.0, *) {
@@ -37,16 +32,12 @@ class StatusKeycard: NSObject {
     }
 
     @objc
-    func hasKeycardSDK(_ resolve: RCTPromiseResolveBlock, rejecter _: RCTPromiseRejectBlock) -> Void {
-      if #available(iOS 13.0, *) {
-        resolve(true)
-      } else {
-        resolve(false)
-      }
+    func openNfcSettings(_ resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) -> Void {
+        reject("E_KEYCARD", "Unsupported on iOS", nil)
     }
 
     @objc
-    func hasNFC(_ resolve: RCTPromiseResolveBlock, rejecter _: RCTPromiseRejectBlock) -> Void {
+    func nfcIsSupported(_ resolve: RCTPromiseResolveBlock, rejecter _: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
         resolve(KeycardController.isAvailable)
       } else {
