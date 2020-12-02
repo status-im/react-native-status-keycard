@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		65B8C633256D352A00C6A3EE /* Keycard in Frameworks */ = {isa = PBXBuildFile; productRef = 65B8C632256D352A00C6A3EE /* Keycard */; };
 		F4FF95D7245B92E800C19C63 /* StatusKeycard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* StatusKeycard.swift */; };
+		F74884362577A87A00D908D2 /* SmartCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74884352577A87A00D908D2 /* SmartCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +29,7 @@
 		B3E7B5891CC2AC0600A0062D /* StatusKeycard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StatusKeycard.m; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* StatusKeycard-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StatusKeycard-Bridging-Header.h"; sourceTree = "<group>"; };
 		F4FF95D6245B92E800C19C63 /* StatusKeycard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusKeycard.swift; sourceTree = "<group>"; };
+		F74884352577A87A00D908D2 /* SmartCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +55,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				F74884352577A87A00D908D2 /* SmartCard.swift */,
 				F4FF95D6245B92E800C19C63 /* StatusKeycard.swift */,
 				B3E7B5891CC2AC0600A0062D /* StatusKeycard.m */,
 				F4FF95D5245B92E700C19C63 /* StatusKeycard-Bridging-Header.h */,
@@ -124,6 +127,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F4FF95D7245B92E800C19C63 /* StatusKeycard.swift in Sources */,
+				F74884362577A87A00D908D2 /* SmartCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
