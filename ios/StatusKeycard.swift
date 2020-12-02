@@ -37,12 +37,17 @@ class StatusKeycard: NSObject {
 
     @objc
     func `init`(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      keycardInvokation(reject) { [unowned self] channel in if #available(iOS 13.0, *) { try self.smartCard?.initCard(channel: channel, pin: pin, resolve: resolve, reject: reject) } }
+      keycardInvokation(reject) { [unowned self] channel in if #available(iOS 13.0, *) { try self.smartCard?.initialize(channel: channel, pin: pin, resolve: resolve, reject: reject) } }
     }
 
     @objc
     func signPinless(_ hash: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in if #available(iOS 13.0, *) { try self.smartCard?.signPinless(channel: channel, hash: hash, resolve: resolve, reject: reject)} }
+    }
+    
+    @objc
+    func pair(_ pairingPassword: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+      keycardInvokation(reject) { [unowned self] channel in if #available(iOS 13.0, *) { try self.smartCard?.pair(channel: channel, pairingPassword: pairingPassword, resolve: resolve, reject: reject)} }
     }
     
     @objc
