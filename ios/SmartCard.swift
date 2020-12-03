@@ -2,6 +2,10 @@ import Foundation
 import Keycard
 import os.log
 
+enum SmartCardError: Error {
+    case invalidBase64
+}
+
 class SmartCard {
     func initialize(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let puk = self.randomPUK()
@@ -17,12 +21,8 @@ class SmartCard {
     func pair(channel: CardChannel, pairingPassword: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       let info = try ApplicationInfo(cmdSet.select().checkOK().data)
-
-      /*Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
-      Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
-      Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
-      Log.i(TAG, "Application version: " + info.getAppVersionString());
-      Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());*/
+      
+      logAppInfo(info)
 
       try cmdSet.autoPair(password: pairingPassword)
 
@@ -30,28 +30,12 @@ class SmartCard {
     }
 
     func generateMnemonic(channel: CardChannel, pairingBase64: String, words: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-      cmdSet.select().checkOK();
+      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
 
-      Pairing pairing = new Pairing(pairingBase64);
-      cmdSet.setPairing(pairing);
+      let mnemonic = try Mnemonic(rawData: cmdSet.generateMnemonic(length: GenerateMnemonicP1.length12Words).checkOK().data)
+      mnemonic.wordList = words.components(separatedBy: .newlines)
 
-      cmdSet.autoOpenSecureChannel();
-      Log.i(TAG, "secure channel opened");
-
-      Mnemonic mnemonic = new Mnemonic(cmdSet.generateMnemonic(KeycardCommandSet.GENERATE_MNEMONIC_12_WORDS).checkOK().getData());
-
-      Scanner scanner = new Scanner(words);
-      ArrayList<String> list = new ArrayList<>();
-      while(scanner.hasNextLine()) {
-        list.add(scanner.nextLine());
-      }
-      scanner.close();
-
-      String [] wordsList = list.toArray(new String[WORDS_LIST_SIZE]);
-      mnemonic.setWordlist(wordsList);
-
-      return mnemonic.toMnemonicPhrase();*/
+      resolve(mnemonic.toMnemonicPhrase())
     }
 
     func generateAndLoadKey(channel: CardChannel, mnemonic: String, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
@@ -366,7 +350,7 @@ class SmartCard {
       let cmdSet = CashCommandSet(cardChannel: channel)
       try cmdSet.select().checkOK()
 
-      let hash = self.hexToBytes(message)
+      let hash = hexToBytes(message)
       let res = try cmdSet.sign(data: hash).checkOK()
 
       /*        RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
@@ -485,7 +469,47 @@ class SmartCard {
     func randomPairingPassword() -> String {
       let letters = "23456789ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
       return String((0..<16).map{ _ in letters.randomElement()! })      
-    } 
+    }
+
+    func authenticatedCommandSet(channel: CardChannel, pairingBase64: String, pin: String) throws -> KeycardCommandSet {
+      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
+      try cmdSet.verifyPIN(pin: pin).checkOK()
+      return cmdSet;
+    }
+
+    func securedCommandSet(channel: CardChannel, pairingBase64: String) throws -> KeycardCommandSet {
+      let cmdSet = KeycardCommandSet(cardChannel: channel)
+      try openSecureChannel(cmdSet: cmdSet, pairingBase64: pairingBase64)
+
+      return cmdSet
+    }
+
+    func openSecureChannel(cmdSet: KeycardCommandSet, pairingBase64: String) throws -> Void {
+      cmdSet.pairing = try base64ToPairing(pairingBase64)
+
+      try cmdSet.autoOpenSecureChannel()
+      os_log("secure channel opened")
+    }
+
+    func base64ToPairing(_ base64: String) throws -> Pairing {
+      if let data = Data(base64Encoded: base64) {
+        return Pairing(pairingData: [UInt8](data))
+      } else {
+        throw SmartCardError.invalidBase64
+      }
+    }
+
+    func logAppInfo(_ info: ApplicationInfo) -> Void {
+      os_log("Instance UID: %@", bytesToHex(info.instanceUID))
+      os_log("Key UID: %@", bytesToHex(info.keyUID))
+      os_log("Secure channel public key: %@", bytesToHex(info.secureChannelPubKey))
+      os_log("Application version: %@", info.appVersionString)
+      os_log("Free pairing slots: %d", info.freePairingSlots)
+    }
+
+    func bytesToHex(_ bytes: [UInt8]) -> String {
+      return bytes.map { String(format: "%02hhx", $0) }.joined()
+    }    
 
     func hexToBytes(_ hex: String) -> [UInt8] {
       var last = hex.first
@@ -502,5 +526,5 @@ class SmartCard {
       }
         return UInt8(lastHexDigitValue * 16 + hexDigitValue)
       }
-    }    
+    }
 }
