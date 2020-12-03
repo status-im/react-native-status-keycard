@@ -6,7 +6,15 @@ enum SmartCardError: Error {
     case invalidBase64
 }
 
-class SmartCard {
+enum DerivationPath: String {
+  case masterPath = "m"
+  case rootPath = "m/44'/60'/0'/0"
+  case walletPath = "m/44'/60'/0'/0/0"
+  case whisperPath = "m/43'/60'/1581'/0'/0"
+  case encryptionPath = "m/43'/60'/1581'/1'/0"
+}
+
+class SmartCard {  
     func initialize(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let puk = self.randomPUK()
       let pairingPassword = self.randomPairingPassword();
@@ -39,427 +47,219 @@ class SmartCard {
     }
 
     func generateAndLoadKey(channel: CardChannel, mnemonic: String, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      let seed = Mnemonic.toBinarySeed(mnemonicPhrase: mnemonic)
+      let keyPair = BIP32KeyPair(fromSeed: seed)
 
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
+      try cmdSet.loadKey(keyPair: keyPair).checkOK()
+      os_log("keypair loaded to card");
+      
+      let rootKeyPair = try exportKey(cmdSet: cmdSet, path: .rootPath, makeCurrent: false, publicOnly: true)
+      let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
+      let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
+      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: true, publicOnly: true)
 
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
+      let info = try ApplicationInfo(cmdSet.select().checkOK().data)
 
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        byte[] seed = Mnemonic.toBinarySeed(mnemonic, "");
-        BIP32KeyPair keyPair = BIP32KeyPair.fromBinarySeed(seed);
-
-        cmdSet.loadKey(keyPair).checkOK();
-        log("keypair loaded to card");
-
-        byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, false, true).checkOK().getData();
-        Log.i(TAG, "Derived " + ROOT_PATH);
-        BIP32KeyPair rootKeyPair = BIP32KeyPair.fromTLV(tlvRoot);
-
-        byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
-        Log.i(TAG, "Derived " + WHISPER_PATH);
-        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlvWhisper);
-
-        byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
-        Log.i(TAG, "Derived " + ENCRYPTION_PATH);
-        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
-
-        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
-        Log.i(TAG, "Derived " + WALLET_PATH);
-        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlvWallet);
-
-        ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
-
-        WritableMap data = Arguments.createMap();
-        data.putString("address", Hex.toHexString(keyPair.toEthereumAddress()));
-        data.putString("public-key", Hex.toHexString(keyPair.getPublicKey()));
-        data.putString("wallet-root-address", Hex.toHexString(rootKeyPair.toEthereumAddress()));
-        data.putString("wallet-root-public-key", Hex.toHexString(rootKeyPair.getPublicKey()));
-        data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
-        data.putString("wallet-public-key", Hex.toHexString(walletKeyPair.getPublicKey()));
-        data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
-        data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
-        data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
-        data.putString("encryption-public-key", Hex.toHexString(encryptionKeyPair.getPublicKey()));
-        data.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
-        data.putString("key-uid", Hex.toHexString(info.getKeyUID()));
-
-        return data;*/
+      resolve([
+        "address": bytesToHex(keyPair.toEthereumAddress()),
+        "public-key": bytesToHex(keyPair.publicKey),
+        "wallet-root-address": bytesToHex(rootKeyPair.toEthereumAddress()),
+        "wallet-root-public-key": bytesToHex(rootKeyPair.publicKey),
+        "wallet-address": bytesToHex(walletKeyPair.toEthereumAddress()),
+        "wallet-public-key": bytesToHex(walletKeyPair.publicKey),
+        "whisper-address": bytesToHex(whisperKeyPair.toEthereumAddress()),
+        "whisper-public-key": bytesToHex(whisperKeyPair.publicKey),
+        "whisper-private-key": bytesToHex(whisperKeyPair.privateKey!),
+        "encryption-public-key": bytesToHex(encryptionKeyPair.publicKey),
+        "instance-uid": bytesToHex(info.instanceUID),
+        "key-uid": bytesToHex(info.keyUID)
+      ])
     }    
 
     func saveMnemonic(channel: CardChannel, mnemonic: String, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        byte[] seed = Mnemonic.toBinarySeed(mnemonic, "");
-        cmdSet.loadKey(seed);
-
-        log("seed loaded to card");*/
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      let seed = Mnemonic.toBinarySeed(mnemonicPhrase: mnemonic)
+      try cmdSet.loadKey(seed: seed).checkOK()
+      os_log("seed loaded to card");
+      resolve(nil)
     }
 
     func getApplicationInfo(channel: CardChannel, pairingBase64: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-       /* KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
+      let cmdSet = KeycardCommandSet(cardChannel: channel)
+      let info = try ApplicationInfo(cmdSet.select().checkOK().data)
 
-        Log.i(TAG, "Card initialized? " + info.isInitializedCard());
+      os_log("Card initialized? %@", info.initializedCard)    
+      var cardInfo = [String: Any]()
+      cardInfo["initialized?"] = info.initializedCard
 
-        WritableMap cardInfo = Arguments.createMap();
-        cardInfo.putBoolean("initialized?", info.isInitializedCard());
+      if (info.initializedCard) {
+        logAppInfo(info)
+        var isPaired = false
 
-        if (info.isInitializedCard()) {
-            Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
-            Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
-            Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
-            Log.i(TAG, "Application version: " + info.getAppVersionString());
-            Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
-
-            Boolean isPaired = false;
-
-            if (pairingBase64.length() > 0) {
-                Pairing pairing = new Pairing(pairingBase64);
-                cmdSet.setPairing(pairing);
-
-                try {
-                    cmdSet.autoOpenSecureChannel();
-                    Log.i(TAG, "secure channel opened");
-                    isPaired = true;
-                } catch(APDUException e) {
-                    Log.i(TAG, "autoOpenSecureChannel failed: " + e.getMessage());
-                }
-
-                if (isPaired) {
-                    ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
-
-                    Log.i(TAG, "PIN retry counter: " + status.getPINRetryCount());
-                    Log.i(TAG, "PUK retry counter: " + status.getPUKRetryCount());
-
-                    cardInfo.putInt("pin-retry-counter", status.getPINRetryCount());
-                    cardInfo.putInt("puk-retry-counter", status.getPUKRetryCount());
-                }
-            }
-
-            cardInfo.putBoolean("has-master-key?", info.hasMasterKey());
-            cardInfo.putBoolean("paired?", isPaired);
-            cardInfo.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
-            cardInfo.putString("key-uid", Hex.toHexString(info.getKeyUID()));
-            cardInfo.putString("secure-channel-pub-key", Hex.toHexString(info.getSecureChannelPubKey()));
-            cardInfo.putString("app-version", info.getAppVersionString());
-            cardInfo.putInt("free-pairing-slots", info.getFreePairingSlots());
+        do {
+          try openSecureChannel(cmdSet: cmdSet, pairingBase64: pairingBase64)
+          isPaired = true
+        } catch let error as CardError {
+          os_log("autoOpenSecureChannel failed: %@", String(describing: error));
+        } catch let error as StatusWord {
+          os_log("autoOpenSecureChannel failed: %@", String(describing: error));
         }
 
-        return cardInfo;*/
+        cardInfo["paired?"] = isPaired
+
+        if (isPaired) {
+          let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
+          os_log("PIN retry counter: %d", status.pinRetryCount)
+          os_log("PUK retry counter: %d", status.pukRetryCount)
+
+          cardInfo["pin-retry-counter"] = status.pinRetryCount
+          cardInfo["puk-retry-counter"] = status.pukRetryCount
+        }
+      }
+
+      cardInfo["hash-master-key?"] = info.hasMasterKey
+      cardInfo["instance-uid"] = bytesToHex(info.instanceUID)
+      cardInfo["key-uid"] = bytesToHex(info.keyUID)
+      cardInfo["secure-channel-pub-key"] = bytesToHex(info.secureChannelPubKey)
+      cardInfo["app-version"] = info.appVersionString
+      cardInfo["free-pairing-slots"] = info.freePairingSlots
+
+      resolve(cardInfo)
     }
 
     func deriveKey(channel: CardChannel, path: String, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      let currentPath = try KeyPath(data: cmdSet.getStatus(info: GetStatusP1.keyPath.rawValue).checkOK().data);
+      os_log("Current key path: %@", currentPath.description)
 
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
+      if (currentPath.description != path) {
+        try cmdSet.deriveKey(path: path).checkOK()
+        os_log("Derived %@", path)
+      }
 
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        KeyPath currentPath = new KeyPath(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
-        Log.i(TAG, "Current key path: " + currentPath);
-
-        if (!currentPath.toString().equals(path)) {
-            cmdSet.deriveKey(path).checkOK();
-            Log.i(TAG, "Derived " + path);
-        }*/
+      resolve(nil)
     }
 
     func exportKey(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        byte[] key = cmdSet.exportCurrentKey(true).checkOK().getData();
-
-        return Hex.toHexString(key);*/
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      let key = try cmdSet.exportCurrentKey(publicOnly: true).checkOK().data
+      resolve(bytesToHex(key))
     }
 
     func exportKeyWithPath(channel: CardChannel, pairingBase64: String, pin: String, path: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      let key = try BIP32KeyPair(fromTLV: cmdSet.exportKey(path: path, makeCurrent: false, publicOnly: true).checkOK().data).publicKey;
 
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        byte[] key = BIP32KeyPair.fromTLV(cmdSet.exportKey(path, false, true).checkOK().getData()).getPublicKey();
-
-        return Hex.toHexString(key);*/
+      resolve(bytesToHex(key))
     }
 
     func getKeys(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      
+      let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
+      let masterPair = try exportKey(cmdSet: cmdSet, path: .masterPath, makeCurrent: false, publicOnly: true)
+      let rootKeyPair = try exportKey(cmdSet: cmdSet, path: .rootPath, makeCurrent: false, publicOnly: true)
+      let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
+      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: true, publicOnly: true)
 
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
+      let info = try ApplicationInfo(cmdSet.select().checkOK().data)
 
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
-        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
-
-        byte[] tlvMaster = cmdSet.exportKey(MASTER_PATH, false, true).checkOK().getData();
-        BIP32KeyPair masterPair = BIP32KeyPair.fromTLV(tlvMaster);
-
-        byte[] tlvRoot = cmdSet.exportKey(ROOT_PATH, false, true).checkOK().getData();
-        BIP32KeyPair keyPair = BIP32KeyPair.fromTLV(tlvRoot);
-
-        byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
-        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlvWhisper);
-
-        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
-        BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlvWallet);
-
-        ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
-
-        WritableMap data = Arguments.createMap();
-        data.putString("address", Hex.toHexString(masterPair.toEthereumAddress()));
-        data.putString("public-key", Hex.toHexString(masterPair.getPublicKey()));
-        data.putString("wallet-root-address", Hex.toHexString(keyPair.toEthereumAddress()));
-        data.putString("wallet-root-public-key", Hex.toHexString(keyPair.getPublicKey()));
-        data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
-        data.putString("wallet-public-key", Hex.toHexString(walletKeyPair.getPublicKey()));
-        data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
-        data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
-        data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
-        data.putString("encryption-public-key", Hex.toHexString(encryptionKeyPair.getPublicKey()));
-        data.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
-        data.putString("key-uid", Hex.toHexString(info.getKeyUID()));
-
-        return data;*/
+      resolve([
+        "address": bytesToHex(masterPair.toEthereumAddress()),
+        "public-key": bytesToHex(masterPair.publicKey),
+        "wallet-root-address": bytesToHex(rootKeyPair.toEthereumAddress()),
+        "wallet-root-public-key": bytesToHex(rootKeyPair.publicKey),
+        "wallet-address": bytesToHex(walletKeyPair.toEthereumAddress()),
+        "wallet-public-key": bytesToHex(walletKeyPair.publicKey),
+        "whisper-address": bytesToHex(whisperKeyPair.toEthereumAddress()),
+        "whisper-public-key": bytesToHex(whisperKeyPair.publicKey),
+        "whisper-private-key": bytesToHex(whisperKeyPair.privateKey!),
+        "encryption-public-key": bytesToHex(encryptionKeyPair.publicKey),
+        "instance-uid": bytesToHex(info.instanceUID),
+        "key-uid": bytesToHex(info.keyUID)
+      ])
     }
 
     func sign(channel: CardChannel, pairingBase64: String, pin: String, message: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        byte[] hash = Hex.decode(message);
-        RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
-
-        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
-        Log.i(TAG, "Recovery ID: " + signature.getRecId());
-        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
-        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        out.write(signature.getR());
-        out.write(signature.getS());
-        out.write(signature.getRecId());
-
-        String sig = Hex.toHexString(out.toByteArray());
-        Log.i(TAG, "Signature: " + sig);
-
-        return sig;*/
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      let sig = try processSignature(message) { return try cmdSet.sign(hash: $0) }
+      resolve(sig)
     }
 
     func signWithPath(channel: CardChannel, pairingBase64: String, pin: String, path: String, message: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-       /* KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      let sig = try processSignature(message) {
+        if (cmdSet.info!.appVersion < 0x0202) {
+          let currentPath = try KeyPath(data: cmdSet.getStatus(info: GetStatusP1.keyPath.rawValue).checkOK().data);
+          
+          if (currentPath.description != path) {
+            try cmdSet.deriveKey(path: path).checkOK()
+          }
 
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        byte[] hash = Hex.decode(message);
-
-        RecoverableSignature signature;
-
-        if (cmdSet.getApplicationInfo().getAppVersion() < 0x0202) {
-            String actualPath = new KeyPath(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData()).toString();
-            if (!actualPath.equals(path)) {
-                cmdSet.deriveKey(path).checkOK();
-            }
-            signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
+          return try cmdSet.sign(hash: $0)
         } else {
-            signature = new RecoverableSignature(hash, cmdSet.signWithPath(hash, path, false).checkOK().getData());
-        }
+          return try cmdSet.sign(hash: $0, path: path, makeCurrent: false)
+        }  
+      }
 
-        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
-        Log.i(TAG, "Recovery ID: " + signature.getRecId());
-        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
-        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        out.write(signature.getR());
-        out.write(signature.getS());
-        out.write(signature.getRecId());
-
-        String sig = Hex.toHexString(out.toByteArray());
-        Log.i(TAG, "Signature: " + sig);
-
-        return sig;*/
+      resolve(sig)
     }
 
     func signPinless(channel: CardChannel, message: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = CashCommandSet(cardChannel: channel)
       try cmdSet.select().checkOK()
 
-      let hash = hexToBytes(message)
-      let res = try cmdSet.sign(data: hash).checkOK()
-
-      /*        RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
-
-        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
-        Log.i(TAG, "Recovery ID: " + signature.getRecId());
-        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
-        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        out.write(signature.getR());
-        out.write(signature.getS());
-        out.write(signature.getRecId());
-
-        String sig = Hex.toHexString(out.toByteArray());
-        Log.i(TAG, "Signature: " + sig);
-                return sig;
-      */
-
-      resolve(res.data.toHexString())
+      let sig = try processSignature(message) { return try cmdSet.sign(data: $0) }
+      resolve(sig)
     }
 
     func verifyPin(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
-
-        return status.getPINRetryCount();*/
+      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
+      let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
+      resolve(status.pinRetryCount)
     }
 
     func changePin(channel: CardChannel, pairingBase64: String, currentPin: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(currentPin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        cmdSet.changePIN(0, newPin);
-        Log.i(TAG, "pin changed");*/
+      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
+      try cmdSet.changePIN(pin: newPin).checkOK()
+      os_log("pin changed")
+      resolve(nil)
     }
 
     func unblockPin(channel: CardChannel, pairingBase64: String, puk: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.unblockPIN(puk, newPin).checkOK();
-        Log.i(TAG, "pin unblocked");*/
+      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
+      try cmdSet.unblockPIN(puk: puk, newPIN: newPin).checkOK()
+      os_log("pin unblocked")
+      resolve(nil)
     }
 
     func unpair(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-       /* KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        cmdSet.autoUnpair();
-        Log.i(TAG, "card unpaired");*/
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      
+      try cmdSet.autoUnpair()
+      os_log("card unpaired")
+      
+      resolve(nil)
     }
 
     func removeKey(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        cmdSet.removeKey();
-        Log.i(TAG, "key removed");*/
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      try cmdSet.removeKey().checkOK()
+      os_log("key removed")
+      
+      resolve(nil)
     }
 
     func removeKeyWithUnpair(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-        /*removeKey(pairingBase64, pin);
-        unpair(pairingBase64, pin);*/
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+      try cmdSet.removeKey().checkOK()
+      os_log("key removed")
+
+      try cmdSet.autoUnpair()
+      os_log("card unpaired")
+
+      resolve(nil)
     }    
 
     func randomPUK() -> String {
@@ -471,9 +271,17 @@ class SmartCard {
       return String((0..<16).map{ _ in letters.randomElement()! })      
     }
 
+    func exportKey(cmdSet: KeycardCommandSet, path: DerivationPath, makeCurrent: Bool, publicOnly: Bool) throws -> BIP32KeyPair {
+      let tlvRoot = try cmdSet.exportKey(path: path.rawValue, makeCurrent: makeCurrent, publicOnly: publicOnly).checkOK().data
+      os_log("Derived %@", path.rawValue)
+      return try BIP32KeyPair(fromTLV: tlvRoot)      
+    }
+
     func authenticatedCommandSet(channel: CardChannel, pairingBase64: String, pin: String) throws -> KeycardCommandSet {
       let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
       try cmdSet.verifyPIN(pin: pin).checkOK()
+      os_log("pin verified")
+      
       return cmdSet;
     }
 
@@ -491,6 +299,13 @@ class SmartCard {
       os_log("secure channel opened")
     }
 
+    func processSignature(_ message: String, sign: ([UInt8]) throws -> APDUResponse) throws -> String {
+      let hash = hexToBytes(message)
+      let signature = try RecoverableSignature(hash: hash, data: sign(hash).checkOK().data)
+      logSignature(hash, signature)
+      return formatSignature(signature)
+    }
+
     func base64ToPairing(_ base64: String) throws -> Pairing {
       if let data = Data(base64Encoded: base64) {
         return Pairing(pairingData: [UInt8](data))
@@ -506,6 +321,27 @@ class SmartCard {
       os_log("Application version: %@", info.appVersionString)
       os_log("Free pairing slots: %d", info.freePairingSlots)
     }
+
+    func logSignature(_ hash: [UInt8], _ signature: RecoverableSignature) -> Void {
+      os_log("Signed hash: %@", bytesToHex(hash))
+      os_log("Recovery ID: %d", signature.recId)
+      os_log("R: %@", bytesToHex(signature.r))
+      os_log("S: %@", bytesToHex(signature.s))
+    }
+
+    func formatSignature(_ signature: RecoverableSignature) -> String {
+      var out = Data(signature.r)
+      out.append(contentsOf: signature.s)
+      out.append(contentsOf: [signature.recId])
+      let sig = dataToHex(out)
+
+      os_log("Signature: %@", sig)
+      return sig
+    }
+
+    func dataToHex(_ data: Data) -> String {
+      return data.map { String(format: "%02hhx", $0) }.joined()
+    }  
 
     func bytesToHex(_ bytes: [UInt8]) -> String {
       return bytes.map { String(format: "%02hhx", $0) }.joined()
