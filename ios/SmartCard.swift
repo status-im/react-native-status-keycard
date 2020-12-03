@@ -1,12 +1,7 @@
 import Foundation
 import Keycard
 
-@available(iOS 13.0, *)
 class SmartCard {
-    func nfcIsSupported() -> Bool {
-      return KeycardController.isAvailable
-    } 
-
     func initialize(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let puk = self.randomPUK()
       let pairingPassword = self.randomPairingPassword();
