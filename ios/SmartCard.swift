@@ -82,7 +82,7 @@ class SmartCard {
       let seed = Mnemonic.toBinarySeed(mnemonicPhrase: mnemonic)
       try cmdSet.loadKey(seed: seed).checkOK()
       os_log("seed loaded to card");
-      resolve(nil)
+      resolve(true)
     }
 
     func getApplicationInfo(channel: CardChannel, pairingBase64: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
@@ -138,7 +138,7 @@ class SmartCard {
         os_log("Derived %@", path)
       }
 
-      resolve(nil)
+      resolve(true)
     }
 
     func exportKey(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
@@ -224,14 +224,14 @@ class SmartCard {
       let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
       try cmdSet.changePIN(pin: newPin).checkOK()
       os_log("pin changed")
-      resolve(nil)
+      resolve(true)
     }
 
     func unblockPin(channel: CardChannel, pairingBase64: String, puk: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
       try cmdSet.unblockPIN(puk: puk, newPIN: newPin).checkOK()
       os_log("pin unblocked")
-      resolve(nil)
+      resolve(true)
     }
 
     func unpair(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
@@ -240,7 +240,7 @@ class SmartCard {
       try cmdSet.autoUnpair()
       os_log("card unpaired")
       
-      resolve(nil)
+      resolve(true)
     }
 
     func removeKey(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
@@ -248,7 +248,7 @@ class SmartCard {
       try cmdSet.removeKey().checkOK()
       os_log("key removed")
       
-      resolve(nil)
+      resolve(true)
     }
 
     func removeKeyWithUnpair(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
@@ -259,7 +259,7 @@ class SmartCard {
       try cmdSet.autoUnpair()
       os_log("card unpaired")
 
-      resolve(nil)
+      resolve(true)
     }    
 
     func randomPUK() -> String {

@@ -1,6 +1,7 @@
 #import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 
-@interface RCT_EXTERN_REMAP_MODULE(RNStatusKeycard, StatusKeycard, NSObject)
+@interface RCT_EXTERN_REMAP_MODULE(RNStatusKeycard, StatusKeycard, RCTEventEmitter)
 
 RCT_EXTERN_METHOD(nfcIsSupported:(RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(nfcIsEnabled:(RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject)
@@ -28,5 +29,7 @@ RCT_EXTERN_METHOD(delete:(RCTPromiseResolveBlock)resolve reject: (RCTPromiseReje
 RCT_EXTERN_METHOD(removeKey:(NSString *)pairing pin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(removeKeyWithUnpair:(NSString *)pairing pin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(unpairAndDelete:(NSString *)pairing pin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(startNFC:(RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(stopNFC:(RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject)
 
 @end

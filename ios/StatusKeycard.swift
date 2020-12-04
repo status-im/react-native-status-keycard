@@ -2,8 +2,12 @@ import Foundation
 import Keycard
 
 @objc(StatusKeycard)
-class StatusKeycard: NSObject {
+class StatusKeycard: RCTEventEmitter {
     let smartCard = SmartCard()
+    var cardChannel: CardChannel? = nil
+    
+    @available(iOS 13.0, *)
+    private(set) lazy var keycardController: KeycardController? = nil
 
     @objc
     func nfcIsSupported(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
@@ -142,30 +146,57 @@ class StatusKeycard: NSObject {
     }
 
     @objc
-    static func requiresMainQueueSetup() -> Bool {
-      return true
-    }
-
-    func keycardInvokation(_ reject: @escaping RCTPromiseRejectBlock, body: @escaping (CardChannel) throws -> Void) {
+    func startNFC(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
-        DispatchQueue.main.async {
-          var keycardController: KeycardController? = nil;
-          keycardController = KeycardController(onConnect: { channel in
-            do {
-              try body(channel)
-              keycardController?.stop(alertMessage: "Success")
-            } catch {
-              reject("E_KEYCARD", "error", error)
-              keycardController?.stop(errorMessage: "Read error. Please try again.")
-            }      
-          }, onFailure: { error in
-            reject("E_KEYCARD", "disconnected", error)
+        if (keycardController == nil) {
+          self.keycardController = KeycardController(onConnect: { [unowned self] channel in 
+            self.cardChannel = channel
+            self.sendEvent(withName: "keyCardOnConnected", body: nil)
+          }, onFailure: { [unowned self] _ in
+            self.cardChannel = nil
+            self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
           })
-
           keycardController?.start(alertMessage: "Hold your iPhone near a Status Keycard.")
+          resolve(true)
+        } else {
+          reject("E_KEYCARD", "already started", nil)
         }
       } else {
         reject("E_KEYCARD", "unavailable", nil)
+      }
+    }
+
+    @objc 
+    func stopNFC(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+      if #available(iOS 13.0, *) {
+        self.keycardController?.stop(errorMessage: "Success")
+        self.cardChannel = nil
+        self.keycardController = nil
+        resolve(true)
+      } else {
+        reject("E_KEYCARD", "unavailable", nil)
+      }
+    }
+
+    override static func requiresMainQueueSetup() -> Bool {
+      return true
+    }
+
+    override func supportedEvents() -> [String]! {
+      return ["keyCardOnConnected", "keyCardOnDisconnected"]
+    }    
+
+    func keycardInvokation(_ reject: @escaping RCTPromiseRejectBlock, body: @escaping (CardChannel) throws -> Void) {
+      if self.cardChannel != nil {
+        DispatchQueue.main.async { [unowned self] in
+          do {
+            try body(self.cardChannel!)
+          } catch {
+            reject("E_KEYCARD", "error", error)
+          }
+        }
+      } else {
+        reject("E_KEYCARD", "not connected", nil)
       }      
     }
 }
