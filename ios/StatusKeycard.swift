@@ -183,8 +183,8 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     override func supportedEvents() -> [String]! {
-      return ["keyCardOnConnected", "keyCardOnDisconnected"]
-    }    
+      return ["keyCardOnConnected", "keyCardOnDisconnected", "keyCardOnNFCEnabled", "keyCardOnNFCDisabled"]
+    }
 
     func keycardInvokation(_ reject: @escaping RCTPromiseRejectBlock, body: @escaping (CardChannel) throws -> Void) {
       if self.cardChannel != nil {
