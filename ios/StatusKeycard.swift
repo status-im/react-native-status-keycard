@@ -188,7 +188,7 @@ class StatusKeycard: RCTEventEmitter {
 
     func keycardInvokation(_ reject: @escaping RCTPromiseRejectBlock, body: @escaping (CardChannel) throws -> Void) {
       if self.cardChannel != nil {
-        DispatchQueue.main.async { [unowned self] in
+        DispatchQueue.global().async { [unowned self] in
           do {
             try body(self.cardChannel!)
           } catch {
