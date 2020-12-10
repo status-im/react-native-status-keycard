@@ -192,7 +192,7 @@ class StatusKeycard: RCTEventEmitter {
           do {
             try body(self.cardChannel!)
           } catch {
-            reject("E_KEYCARD", "error", error)
+            reject("E_KEYCARD", "\(error)", error)
           }
         }
       } else {
