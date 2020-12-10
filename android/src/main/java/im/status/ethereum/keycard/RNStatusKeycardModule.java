@@ -439,7 +439,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void stopNFC(final Promise promise) {
+    public void stopNFC(String error, final Promise promise) {
         promise.resolve(true)
     }
 }

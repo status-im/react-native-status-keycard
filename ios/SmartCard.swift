@@ -289,6 +289,7 @@ class SmartCard {
 
     func securedCommandSet(channel: CardChannel, pairingBase64: String) throws -> KeycardCommandSet {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
+      try cmdSet.select().checkOK()
       try openSecureChannel(cmdSet: cmdSet, pairingBase64: pairingBase64)
 
       return cmdSet

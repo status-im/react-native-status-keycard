@@ -30,6 +30,6 @@ RCT_EXTERN_METHOD(removeKey:(NSString *)pairing pin:(NSString *)pin resolve:(RCT
 RCT_EXTERN_METHOD(removeKeyWithUnpair:(NSString *)pairing pin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(unpairAndDelete:(NSString *)pairing pin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(startNFC:(RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(stopNFC:(RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(stopNFC:(NSString *)err resolve:(RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject)
 
 @end

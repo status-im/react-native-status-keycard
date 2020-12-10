@@ -167,9 +167,13 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     @objc 
-    func stopNFC(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func stopNFC(_ err: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
-        self.keycardController?.stop(alertMessage: "Success")
+        if (err.isEmpty) {
+          self.keycardController?.stop(alertMessage: "Success")
+        } else {
+          self.keycardController?.stop(errorMessage: err)
+        }
         self.cardChannel = nil
         self.keycardController = nil
         resolve(true)
