@@ -89,7 +89,7 @@ class SmartCard {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       let info = try ApplicationInfo(cmdSet.select().checkOK().data)
 
-      os_log("Card initialized? %@", info.initializedCard)    
+      os_log("Card initialized? %@", String(info.initializedCard))    
       var cardInfo = [String: Any]()
       cardInfo["initialized?"] = info.initializedCard
 
