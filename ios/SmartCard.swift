@@ -97,24 +97,26 @@ class SmartCard {
         logAppInfo(info)
         var isPaired = false
 
-        do {
-          try openSecureChannel(cmdSet: cmdSet, pairingBase64: pairingBase64)
-          isPaired = true
-        } catch let error as CardError {
-          os_log("autoOpenSecureChannel failed: %@", String(describing: error));
-        } catch let error as StatusWord {
-          os_log("autoOpenSecureChannel failed: %@", String(describing: error));
-        }
+        if (!pairingBase64.isEmpty) {
+          do {
+            try openSecureChannel(cmdSet: cmdSet, pairingBase64: pairingBase64)
+            isPaired = true
+          } catch let error as CardError {
+            os_log("autoOpenSecureChannel failed: %@", String(describing: error));
+          } catch let error as StatusWord {
+            os_log("autoOpenSecureChannel failed: %@", String(describing: error));
+          }
 
-        cardInfo["paired?"] = isPaired
+          cardInfo["paired?"] = isPaired
 
-        if (isPaired) {
-          let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
-          os_log("PIN retry counter: %d", status.pinRetryCount)
-          os_log("PUK retry counter: %d", status.pukRetryCount)
+          if (isPaired) {
+            let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
+            os_log("PIN retry counter: %d", status.pinRetryCount)
+            os_log("PUK retry counter: %d", status.pukRetryCount)
 
-          cardInfo["pin-retry-counter"] = status.pinRetryCount
-          cardInfo["puk-retry-counter"] = status.pukRetryCount
+            cardInfo["pin-retry-counter"] = status.pinRetryCount
+            cardInfo["puk-retry-counter"] = status.pukRetryCount
+          }
         }
       }
 
