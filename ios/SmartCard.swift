@@ -107,8 +107,6 @@ class SmartCard {
             os_log("autoOpenSecureChannel failed: %@", String(describing: error));
           }
 
-          cardInfo["paired?"] = isPaired
-
           if (isPaired) {
             let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
             os_log("PIN retry counter: %d", status.pinRetryCount)
@@ -118,9 +116,11 @@ class SmartCard {
             cardInfo["puk-retry-counter"] = status.pukRetryCount
           }
         }
+
+        cardInfo["paired?"] = isPaired
       }
 
-      cardInfo["hash-master-key?"] = info.hasMasterKey
+      cardInfo["has-master-key?"] = info.hasMasterKey
       cardInfo["instance-uid"] = bytesToHex(info.instanceUID)
       cardInfo["key-uid"] = bytesToHex(info.keyUID)
       cardInfo["secure-channel-pub-key"] = bytesToHex(info.secureChannelPubKey)
