@@ -57,7 +57,7 @@ class SmartCard {
       let rootKeyPair = try exportKey(cmdSet: cmdSet, path: .rootPath, makeCurrent: false, publicOnly: true)
       let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
       let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
-      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .walletPath, makeCurrent: true, publicOnly: true)
+      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .walletPath, makeCurrent: false, publicOnly: true)
 
       let info = try ApplicationInfo(cmdSet.select().checkOK().data)
 
@@ -163,7 +163,7 @@ class SmartCard {
       let masterPair = try exportKey(cmdSet: cmdSet, path: .masterPath, makeCurrent: false, publicOnly: true)
       let rootKeyPair = try exportKey(cmdSet: cmdSet, path: .rootPath, makeCurrent: false, publicOnly: true)
       let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
-      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .walletPath, makeCurrent: true, publicOnly: true)
+      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .walletPath, makeCurrent: false, publicOnly: true)
 
       let info = try ApplicationInfo(cmdSet.select().checkOK().data)
 
@@ -351,8 +351,10 @@ class SmartCard {
     }    
 
     func hexToBytes(_ hex: String) -> [UInt8] {
-      var last = hex.first
-        return hex.dropFirst().compactMap {
+      let h = hex.starts(with: "0x") ? String(hex.dropFirst(2)) : hex
+
+      var last = h.first
+        return h.dropFirst().compactMap {
           guard
             let lastHexDigitValue = last?.hexDigitValue,
             let hexDigitValue = $0.hexDigitValue 

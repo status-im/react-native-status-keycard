@@ -152,6 +152,7 @@ class StatusKeycard: RCTEventEmitter {
           self.keycardController = KeycardController(onConnect: { [unowned self] channel in 
             self.cardChannel = channel
             self.sendEvent(withName: "keyCardOnConnected", body: nil)
+            self.keycardController?.setAlert("Connected. Don't move your card until this message disappears.")
           }, onFailure: { [unowned self] _ in
             self.cardChannel = nil
             self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
