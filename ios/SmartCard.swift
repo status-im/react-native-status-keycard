@@ -265,7 +265,7 @@ class SmartCard {
     }    
 
     func randomPUK() -> String {
-      return String(format: "%012d", Int.random(in: 0..<999999999999))
+      return String(format: "%012ld", Int64.random(in: 0..<999999999999))
     }
 
     func randomPairingPassword() -> String {
