@@ -146,18 +146,18 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     @objc
-    func startNFC(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func startNFC(_ prompt: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
         if (keycardController == nil) {
           self.keycardController = KeycardController(onConnect: { [unowned self] channel in 
             self.cardChannel = channel
             self.sendEvent(withName: "keyCardOnConnected", body: nil)
-            self.keycardController?.setAlert("Connected. Don't move your card until this message disappears.")
+            self.keycardController?.setAlert("Connected. Don't move your card.")
           }, onFailure: { [unowned self] _ in
             self.cardChannel = nil
             self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
           })
-          keycardController?.start(alertMessage: "Hold your iPhone near a Status Keycard.")
+          keycardController?.start(alertMessage: prompt.isEmpty ? "Hold your iPhone near a Status Keycard." : prompt)
           resolve(true)
         } else {
           reject("E_KEYCARD", "already started", nil)
@@ -182,6 +182,16 @@ class StatusKeycard: RCTEventEmitter {
         reject("E_KEYCARD", "unavailable", nil)
       }
     }
+
+    @objc 
+    func setNFCMessage(_ message: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+      if #available(iOS 13.0, *) {
+        self.keycardController?.setAlert(message)
+        resolve(true)
+      } else {
+        reject("E_KEYCARD", "unavailable", nil)
+      }
+    }    
 
     override static func requiresMainQueueSetup() -> Bool {
       return true
