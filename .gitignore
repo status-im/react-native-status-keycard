@@ -47,3 +47,8 @@ buck-out/
 *.keystore
 
 /lib
+
+# VSCode + Java
+android/.project
+android/.settings
+.vscode

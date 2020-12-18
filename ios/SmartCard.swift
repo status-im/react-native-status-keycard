@@ -14,11 +14,11 @@ enum DerivationPath: String {
   case encryptionPath = "m/43'/60'/1581'/1'/0"
 }
 
-class SmartCard {  
+class SmartCard {
     func initialize(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let puk = self.randomPUK()
       let pairingPassword = self.randomPairingPassword();
-      
+
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       try cmdSet.select().checkOK()
       try cmdSet.initialize(pin: pin, puk: puk, pairingPassword: pairingPassword).checkOK();
@@ -29,7 +29,7 @@ class SmartCard {
     func pair(channel: CardChannel, pairingPassword: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       let info = try ApplicationInfo(cmdSet.select().checkOK().data)
-      
+
       logAppInfo(info)
 
       try cmdSet.autoPair(password: pairingPassword)
@@ -53,7 +53,7 @@ class SmartCard {
 
       try cmdSet.loadKey(keyPair: keyPair).checkOK()
       os_log("keypair loaded to card");
-      
+
       let rootKeyPair = try exportKey(cmdSet: cmdSet, path: .rootPath, makeCurrent: false, publicOnly: true)
       let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
       let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
@@ -75,7 +75,7 @@ class SmartCard {
         "instance-uid": bytesToHex(info.instanceUID),
         "key-uid": bytesToHex(info.keyUID)
       ])
-    }    
+    }
 
     func saveMnemonic(channel: CardChannel, mnemonic: String, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
@@ -89,7 +89,7 @@ class SmartCard {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       let info = try ApplicationInfo(cmdSet.select().checkOK().data)
 
-      os_log("Card initialized? %@", String(info.initializedCard))    
+      os_log("Card initialized? %@", String(info.initializedCard))
       var cardInfo = [String: Any]()
       cardInfo["initialized?"] = info.initializedCard
 
@@ -158,7 +158,7 @@ class SmartCard {
 
     func getKeys(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
-      
+
       let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
       let masterPair = try exportKey(cmdSet: cmdSet, path: .masterPath, makeCurrent: false, publicOnly: true)
       let rootKeyPair = try exportKey(cmdSet: cmdSet, path: .rootPath, makeCurrent: false, publicOnly: true)
@@ -194,7 +194,7 @@ class SmartCard {
       let sig = try processSignature(message) {
         if (cmdSet.info!.appVersion < 0x0202) {
           let currentPath = try KeyPath(data: cmdSet.getStatus(info: GetStatusP1.keyPath.rawValue).checkOK().data);
-          
+
           if (currentPath.description != path) {
             try cmdSet.deriveKey(path: path).checkOK()
           }
@@ -202,7 +202,7 @@ class SmartCard {
           return try cmdSet.sign(hash: $0)
         } else {
           return try cmdSet.sign(hash: $0, path: path, makeCurrent: false)
-        }  
+        }
       }
 
       resolve(sig)
@@ -238,10 +238,10 @@ class SmartCard {
 
     func unpair(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
-      
+
       try cmdSet.autoUnpair()
       os_log("card unpaired")
-      
+
       resolve(true)
     }
 
@@ -249,7 +249,7 @@ class SmartCard {
       let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
       try cmdSet.removeKey().checkOK()
       os_log("key removed")
-      
+
       resolve(true)
     }
 
@@ -262,28 +262,29 @@ class SmartCard {
       os_log("card unpaired")
 
       resolve(true)
-    }    
+    }
 
     func randomPUK() -> String {
       return String(format: "%012ld", Int64.random(in: 0..<999999999999))
     }
 
     func randomPairingPassword() -> String {
-      let letters = "23456789ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-      return String((0..<16).map{ _ in letters.randomElement()! })      
+      let digits = "23456789"
+      let letters = "abcdefghijkmnopqrstuvwxyz"
+      return String((0..<5).map{ i in ((i % 2) == 0) ? letters.randomElement()! : digits.randomElement()! })
     }
 
     func exportKey(cmdSet: KeycardCommandSet, path: DerivationPath, makeCurrent: Bool, publicOnly: Bool) throws -> BIP32KeyPair {
       let tlvRoot = try cmdSet.exportKey(path: path.rawValue, makeCurrent: makeCurrent, publicOnly: publicOnly).checkOK().data
       os_log("Derived %@", path.rawValue)
-      return try BIP32KeyPair(fromTLV: tlvRoot)      
+      return try BIP32KeyPair(fromTLV: tlvRoot)
     }
 
     func authenticatedCommandSet(channel: CardChannel, pairingBase64: String, pin: String) throws -> KeycardCommandSet {
       let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
       try cmdSet.verifyPIN(pin: pin).checkOK()
       os_log("pin verified")
-      
+
       return cmdSet;
     }
 
@@ -344,11 +345,11 @@ class SmartCard {
 
     func dataToHex(_ data: Data) -> String {
       return data.map { String(format: "%02hhx", $0) }.joined()
-    }  
+    }
 
     func bytesToHex(_ bytes: [UInt8]) -> String {
       return bytes.map { String(format: "%02hhx", $0) }.joined()
-    }    
+    }
 
     func hexToBytes(_ hex: String) -> [UInt8] {
       let h = hex.starts(with: "0x") ? String(hex.dropFirst(2)) : hex
@@ -357,7 +358,7 @@ class SmartCard {
         return h.dropFirst().compactMap {
           guard
             let lastHexDigitValue = last?.hexDigitValue,
-            let hexDigitValue = $0.hexDigitValue 
+            let hexDigitValue = $0.hexDigitValue
           else {
             last = $0
             return nil
