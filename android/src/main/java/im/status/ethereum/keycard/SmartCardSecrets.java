@@ -3,8 +3,6 @@ package im.status.ethereum.keycard;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 
-import org.apache.commons.lang3.RandomStringUtils;
-
 import static android.util.Base64.NO_PADDING;
 import static android.util.Base64.NO_WRAP;
 
@@ -33,7 +31,7 @@ public class SmartCardSecrets {
 
     @NonNull
     public static SmartCardSecrets generate(final String userPin) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String pairingPassword = randomToken(16);
+        String pairingPassword = randomToken(5);
         long pinNumber = randomLong(PIN_BOUND);
         long pukNumber = randomLong(PUK_BOUND);
 
@@ -67,9 +65,18 @@ public class SmartCardSecrets {
     }
 
     public static String randomToken(int length) {
-        char[] possibleCharacters = "23456789ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
-        String randomStr = RandomStringUtils.random(length, 0, possibleCharacters.length-1, false, false, possibleCharacters, new SecureRandom());
-        return randomStr;
+        SecureRandom random = new SecureRandom();
+        char[] possibleCharacters = "abcdefghijkmnpqrstuvwxyz".toCharArray();
+        char[] possibleDigits = "23456789".toCharArray();
+        StringBuffer buffer = new StringBuffer(length);
+
+        for (int i = 0; i < length; i++) {
+            char[] src = (i % 2) == 0 ? possibleCharacters : possibleDigits;
+            int idx = random.nextInt(src.length - 1);
+            buffer.append(src[idx]);
+        }
+
+        return buffer.toString();
     }
 
     public static byte[] randomBytes(int length) {
