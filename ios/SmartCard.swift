@@ -223,7 +223,7 @@ class SmartCard {
     }
 
     func changePin(channel: CardChannel, pairingBase64: String, currentPin: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: currentPin)
       try cmdSet.changePIN(pin: newPin).checkOK()
       os_log("pin changed")
       resolve(true)
