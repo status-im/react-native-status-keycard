@@ -217,7 +217,7 @@ class SmartCard {
     }
 
     func verifyPin(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
       let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
       resolve(status.pinRetryCount)
     }
