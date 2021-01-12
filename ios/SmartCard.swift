@@ -282,7 +282,7 @@ class SmartCard {
 
     func authenticatedCommandSet(channel: CardChannel, pairingBase64: String, pin: String) throws -> KeycardCommandSet {
       let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
-      try cmdSet.verifyPIN(pin: pin).checkOK()
+      try cmdSet.verifyPIN(pin: pin).checkAuthOK()
       os_log("pin verified")
 
       return cmdSet;
