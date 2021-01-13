@@ -231,7 +231,7 @@ class SmartCard {
 
     func unblockPin(channel: CardChannel, pairingBase64: String, puk: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
-      try cmdSet.unblockPIN(puk: puk, newPIN: newPin).checkOK()
+      try cmdSet.unblockPIN(puk: puk, newPIN: newPin).checkAuthOK()
       os_log("pin unblocked")
       resolve(true)
     }

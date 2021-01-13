@@ -1,5 +1,6 @@
 import Foundation
 import Keycard
+import UIKit
 
 @objc(StatusKeycard)
 class StatusKeycard: RCTEventEmitter {
@@ -151,6 +152,7 @@ class StatusKeycard: RCTEventEmitter {
         if (keycardController == nil) {
           self.keycardController = KeycardController(onConnect: { [unowned self] channel in
             self.cardChannel = channel
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
             self.sendEvent(withName: "keyCardOnConnected", body: nil)
             self.keycardController?.setAlert("Connected. Don't move your card.")
           }, onFailure: { [unowned self] _ in
