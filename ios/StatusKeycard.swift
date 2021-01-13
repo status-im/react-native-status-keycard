@@ -5,7 +5,7 @@ import Keycard
 class StatusKeycard: RCTEventEmitter {
     let smartCard = SmartCard()
     var cardChannel: CardChannel? = nil
-    
+
     @available(iOS 13.0, *)
     private(set) lazy var keycardController: KeycardController? = nil
 
@@ -22,7 +22,7 @@ class StatusKeycard: RCTEventEmitter {
     func nfcIsEnabled(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       // On iOS NFC is always enabled (if available)
       nfcIsSupported(resolve, reject: reject)
-    }    
+    }
 
     @objc
     func openNfcSettings(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
@@ -34,7 +34,7 @@ class StatusKeycard: RCTEventEmitter {
     func `init`(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.initialize(channel: channel, pin: pin, resolve: resolve, reject: reject) }
     }
-  
+
     @objc
     func pair(_ pairingPassword: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.pair(channel: channel, pairingPassword: pairingPassword, resolve: resolve, reject: reject) }
@@ -47,12 +47,12 @@ class StatusKeycard: RCTEventEmitter {
 
     @objc
     func generateAndLoadKey(_ mnemonic: String, pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.generateAndLoadKey(channel: channel, mnemonic: mnemonic, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }    
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.generateAndLoadKey(channel: channel, mnemonic: mnemonic, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
     func saveMnemonic(_ mnemonic: String, pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.saveMnemonic(channel: channel, mnemonic: mnemonic, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }    
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.saveMnemonic(channel: channel, mnemonic: mnemonic, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
@@ -74,7 +74,7 @@ class StatusKeycard: RCTEventEmitter {
     func exportKeyWithPath(_ pairing: String, pin: String, path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.exportKeyWithPath(channel: channel, pairingBase64: pairing, pin: pin, path: path, resolve: resolve, reject: reject) }
     }
-    
+
     @objc
     func getKeys(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.getKeys(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }
@@ -84,7 +84,7 @@ class StatusKeycard: RCTEventEmitter {
     func sign(_ pairing: String, pin: String, hash: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.sign(channel: channel, pairingBase64: pairing, pin: pin, message: hash, resolve: resolve, reject: reject) }
     }
-    
+
     @objc
     func signWithPath(_ pairing: String, pin: String, path: String, hash: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.signWithPath(channel: channel, pairingBase64: pairing, pin: pin, path: path, message: hash, resolve: resolve, reject: reject) }
@@ -107,49 +107,49 @@ class StatusKeycard: RCTEventEmitter {
 
     @objc
     func verifyPin(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.verifyPin(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }    
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.verifyPin(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
     func changePin(_ pairing: String, currentPin: String, newPin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.changePin(channel: channel, pairingBase64: pairing, currentPin: currentPin, newPin: newPin, resolve: resolve, reject: reject) }    
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.changePin(channel: channel, pairingBase64: pairing, currentPin: currentPin, newPin: newPin, resolve: resolve, reject: reject) }
     }
 
     @objc
     func unblockPin(_ pairing: String, puk: String, newPin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.unblockPin(channel: channel, pairingBase64: pairing, puk: puk, newPin: newPin, resolve: resolve, reject: reject) }    
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.unblockPin(channel: channel, pairingBase64: pairing, puk: puk, newPin: newPin, resolve: resolve, reject: reject) }
     }
 
     @objc
     func unpair(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.unpair(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }    
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.unpair(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
     func delete(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       reject("E_KEYCARD", "Not implemented (unused)", nil)
     }
-    
+
     @objc
     func removeKey(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.removeKey(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }    
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.removeKey(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }
     }
-    
+
     @objc
     func removeKeyWithUnpair(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.removeKeyWithUnpair(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }    
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.removeKeyWithUnpair(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
     func unpairAndDelete(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-      reject("E_KEYCARD", "Not implemented (unused)", nil)    
+      reject("E_KEYCARD", "Not implemented (unused)", nil)
     }
 
     @objc
     func startNFC(_ prompt: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
         if (keycardController == nil) {
-          self.keycardController = KeycardController(onConnect: { [unowned self] channel in 
+          self.keycardController = KeycardController(onConnect: { [unowned self] channel in
             self.cardChannel = channel
             self.sendEvent(withName: "keyCardOnConnected", body: nil)
             self.keycardController?.setAlert("Connected. Don't move your card.")
@@ -167,7 +167,7 @@ class StatusKeycard: RCTEventEmitter {
       }
     }
 
-    @objc 
+    @objc
     func stopNFC(_ err: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
         if (err.isEmpty) {
@@ -183,7 +183,7 @@ class StatusKeycard: RCTEventEmitter {
       }
     }
 
-    @objc 
+    @objc
     func setNFCMessage(_ message: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
         self.keycardController?.setAlert(message)
@@ -191,7 +191,7 @@ class StatusKeycard: RCTEventEmitter {
       } else {
         reject("E_KEYCARD", "unavailable", nil)
       }
-    }    
+    }
 
     override static func requiresMainQueueSetup() -> Bool {
       return true
@@ -207,11 +207,22 @@ class StatusKeycard: RCTEventEmitter {
           do {
             try body(self.cardChannel!)
           } catch {
-            reject("E_KEYCARD", "\(error)", error)
+            var errMsg = ""
+
+            if type(of: error) is NSError.Type {
+              let nsError = error as NSError
+              errMsg = "\(nsError.domain):\(nsError.code)"
+              if nsError.code == 100 && nsError.domain == "NFCError" {
+                self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
+              }
+            } else {
+              errMsg = "\(error)"
+            }
+            reject("E_KEYCARD", errMsg, error)
           }
         }
       } else {
         reject("E_KEYCARD", "not connected", nil)
-      }      
+      }
     }
 }
