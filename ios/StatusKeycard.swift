@@ -1,6 +1,7 @@
 import Foundation
 import Keycard
 import UIKit
+import os.log
 
 @objc(StatusKeycard)
 class StatusKeycard: RCTEventEmitter {
@@ -155,6 +156,7 @@ class StatusKeycard: RCTEventEmitter {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             self.sendEvent(withName: "keyCardOnConnected", body: nil)
             self.keycardController?.setAlert("Connected. Don't move your card.")
+            os_log("[react-native-status-keycard] card connected")
           }, onFailure: { [unowned self] _ in
             self.cardChannel = nil
             self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
