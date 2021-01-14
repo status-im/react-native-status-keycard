@@ -216,6 +216,7 @@ class StatusKeycard: RCTEventEmitter {
               errMsg = "\(nsError.domain):\(nsError.code)"
               if nsError.code == 100 && nsError.domain == "NFCError" {
                 self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
+                self.keycardController?.restartPolling()
               }
             } else {
               errMsg = "\(error)"
