@@ -206,28 +206,32 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     func keycardInvokation(_ reject: @escaping RCTPromiseRejectBlock, body: @escaping (CardChannel) throws -> Void) {
-      if self.cardChannel != nil {
-        DispatchQueue.global().async { [unowned self] in
-          do {
-            try body(self.cardChannel!)
-          } catch {
-            var errMsg = ""
+      if #available(iOS 13.0, *) {
+        if self.cardChannel != nil {
+          DispatchQueue.global().async { [unowned self] in
+            do {
+              try body(self.cardChannel!)
+            } catch {
+              var errMsg = ""
 
-            if type(of: error) is NSError.Type {
-              let nsError = error as NSError
-              errMsg = "\(nsError.domain):\(nsError.code)"
-              if nsError.code == 100 && nsError.domain == "NFCError" {
-                self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
-                self.keycardController?.restartPolling()
+              if type(of: error) is NSError.Type {
+                let nsError = error as NSError
+                errMsg = "\(nsError.domain):\(nsError.code)"
+                if nsError.code == 100 && nsError.domain == "NFCError" {
+                  self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
+                  self.keycardController?.restartPolling()
+                }
+              } else {
+                errMsg = "\(error)"
               }
-            } else {
-              errMsg = "\(error)"
+              reject("E_KEYCARD", errMsg, error)
             }
-            reject("E_KEYCARD", errMsg, error)
           }
+        } else {
+          reject("E_KEYCARD", "not connected", nil)
         }
       } else {
-        reject("E_KEYCARD", "not connected", nil)
+        reject("E_KEYCARD", "unavailable", nil)
       }
     }
 }
