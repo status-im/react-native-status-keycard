@@ -151,15 +151,29 @@ class StatusKeycard: RCTEventEmitter {
     func startNFC(_ prompt: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
         if (keycardController == nil) {
+          let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+          feedbackGenerator.prepare()
+
           self.keycardController = KeycardController(onConnect: { [unowned self] channel in
             self.cardChannel = channel
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            feedbackGenerator.impactOccurred()
             self.sendEvent(withName: "keyCardOnConnected", body: nil)
             self.keycardController?.setAlert("Connected. Don't move your card.")
             os_log("[react-native-status-keycard] card connected")
-          }, onFailure: { [unowned self] _ in
+          }, onFailure: { [unowned self] error in
             self.cardChannel = nil
-            self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
+            self.keycardController = nil
+
+            os_log("[react-native-status-keycard] NFCError: %@", String(describing: error))
+
+            if type(of: error) is NSError.Type {
+              let nsError = error as NSError
+              if nsError.code == 200 && nsError.domain == "NFCError" {
+                self.sendEvent(withName: "keyCardOnNFCUserCancelled", body: nil)
+              } else if nsError.code == 201 && nsError.domain == "NFCError" {
+                self.sendEvent(withName: "keyCardOnNFCTimeout", body: nil)
+              }
+            }
           })
           keycardController?.start(alertMessage: prompt.isEmpty ? "Hold your iPhone near a Status Keycard." : prompt)
           resolve(true)
@@ -202,7 +216,7 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     override func supportedEvents() -> [String]! {
-      return ["keyCardOnConnected", "keyCardOnDisconnected", "keyCardOnNFCEnabled", "keyCardOnNFCDisabled"]
+      return ["keyCardOnConnected", "keyCardOnDisconnected", "keyCardOnNFCEnabled", "keyCardOnNFCDisabled", "keyCardOnNFCTimeout", "keyCardOnNFCUserCancelled"]
     }
 
     func keycardInvokation(_ reject: @escaping RCTPromiseRejectBlock, body: @escaping (CardChannel) throws -> Void) {
