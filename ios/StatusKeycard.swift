@@ -7,6 +7,7 @@ import os.log
 class StatusKeycard: RCTEventEmitter {
     let smartCard = SmartCard()
     var cardChannel: CardChannel? = nil
+    var nfcStartPrompt: String = "Hold your iPhone near a Status Keycard."
 
     @available(iOS 13.0, *)
     private(set) lazy var keycardController: KeycardController? = nil
@@ -151,12 +152,15 @@ class StatusKeycard: RCTEventEmitter {
     func startNFC(_ prompt: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
         if (keycardController == nil) {
-          let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
-          feedbackGenerator.prepare()
-
           self.keycardController = KeycardController(onConnect: { [unowned self] channel in
             self.cardChannel = channel
-            feedbackGenerator.impactOccurred()
+
+            let feedbackGenerator = UINotificationFeedbackGenerator()
+            feedbackGenerator.prepare()
+
+            DispatchQueue.main.async {
+              feedbackGenerator.notificationOccurred(.success)
+            }
             self.sendEvent(withName: "keyCardOnConnected", body: nil)
             self.keycardController?.setAlert("Connected. Don't move your card.")
             os_log("[react-native-status-keycard] card connected")
@@ -175,7 +179,9 @@ class StatusKeycard: RCTEventEmitter {
               }
             }
           })
-          keycardController?.start(alertMessage: prompt.isEmpty ? "Hold your iPhone near a Status Keycard." : prompt)
+
+          self.nfcStartPrompt = prompt.isEmpty ? "Hold your iPhone near a Status Keycard." : prompt
+          keycardController?.start(alertMessage: self.nfcStartPrompt)
           resolve(true)
         } else {
           reject("E_KEYCARD", "already started", nil)
@@ -234,6 +240,7 @@ class StatusKeycard: RCTEventEmitter {
                 if nsError.code == 100 && nsError.domain == "NFCError" {
                   self.sendEvent(withName: "keyCardOnDisconnected", body: nil)
                   self.keycardController?.restartPolling()
+                  self.keycardController?.setAlert(self.nfcStartPrompt)
                 }
               } else {
                 errMsg = "\(error)"
