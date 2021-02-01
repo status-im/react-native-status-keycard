@@ -72,7 +72,7 @@ public class SmartCardSecrets {
 
         for (int i = 0; i < length; i++) {
             char[] src = (i % 2) == 0 ? possibleCharacters : possibleDigits;
-            int idx = random.nextInt(src.length - 1);
+            int idx = random.nextInt(src.length);
             buffer.append(src[idx]);
         }
 

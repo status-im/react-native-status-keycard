@@ -1,4 +1,6 @@
+/example
 
+#
 # OSX
 #
 .DS_Store
@@ -43,6 +45,8 @@ local.properties
 buck-out/
 \.buckd/
 *.keystore
+
+/lib
 
 # VSCode + Java
 android/.project

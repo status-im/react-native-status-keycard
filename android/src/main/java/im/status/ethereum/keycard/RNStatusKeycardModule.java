@@ -432,4 +432,19 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         }).start();
     }
 
+    // These three methods below are a nop on Android since NFC is always listening and we have a custom UI. They are needed in iOS to show the NFC dialog
+    @ReactMethod
+    public void startNFC(String prompt, final Promise promise) {
+        promise.resolve(true);
+    }
+
+    @ReactMethod
+    public void stopNFC(String error, final Promise promise) {
+        promise.resolve(true);
+    }
+
+    @ReactMethod
+    public void setNFCMessage(String message, final Promise promise) {
+        promise.resolve(true);
+    }    
 }
