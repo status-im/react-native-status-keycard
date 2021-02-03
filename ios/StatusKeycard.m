@@ -15,6 +15,7 @@ RCT_EXTERN_METHOD(getApplicationInfo:(NSString *)pairingBase64 resolve:(RCTPromi
 RCT_EXTERN_METHOD(deriveKey:(NSString *)path pairing: (NSString *)pairing pin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(exportKey:(NSString *)pairing pin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(exportKeyWithPath:(NSString *)pairing pin:(NSString *)pin path:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(importKeys:(NSString *)pairing pin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getKeys:(NSString *)pairing pin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(sign:(NSString *)pairing pin:(NSString *)pin hash:(NSString *)hash resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(signWithPath:(NSString *)pairing pin:(NSString *)pin path:(NSString *)path hash:(NSString *)hash resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)

@@ -79,6 +79,11 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     @objc
+    func importKeys(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.importKeys(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }
+    }
+
+    @objc
     func getKeys(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.getKeys(channel: channel, pairingBase64: pairing, pin: pin, resolve: resolve, reject: reject) }
     }
