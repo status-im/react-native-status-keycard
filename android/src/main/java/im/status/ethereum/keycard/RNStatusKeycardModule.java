@@ -218,13 +218,26 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         }).start();
     }
 
-
     @ReactMethod
     public void getKeys(final String pairing, final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
                     promise.resolve(smartCard.getKeys(pairing, pin));
+                } catch (IOException | APDUException e) {
+                    Log.d(TAG, e.getMessage());
+                    promise.reject(e);
+                }
+            }
+        }).start();
+    }
+
+    @ReactMethod
+    public void importKeys(final String pairing, final String pin, final Promise promise) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    promise.resolve(smartCard.importKeys(pairing, pin));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -446,5 +459,5 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     @ReactMethod
     public void setNFCMessage(String message, final Promise promise) {
         promise.resolve(true);
-    }    
+    }
 }

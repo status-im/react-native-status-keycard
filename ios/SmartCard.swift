@@ -57,7 +57,7 @@ class SmartCard {
       let rootKeyPair = try exportKey(cmdSet: cmdSet, path: .rootPath, makeCurrent: false, publicOnly: true)
       let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
       let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
-      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .walletPath, makeCurrent: true, publicOnly: true)
+      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .walletPath, makeCurrent: false, publicOnly: true)
 
       let info = try ApplicationInfo(cmdSet.select().checkOK().data)
 
@@ -156,16 +156,16 @@ class SmartCard {
       resolve(bytesToHex(key))
     }
 
-    func getKeys(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+    func importKeys(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
 
       let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
       let masterPair = try exportKey(cmdSet: cmdSet, path: .masterPath, makeCurrent: false, publicOnly: true)
       let rootKeyPair = try exportKey(cmdSet: cmdSet, path: .rootPath, makeCurrent: false, publicOnly: true)
       let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
-      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .walletPath, makeCurrent: true, publicOnly: true)
+      let walletKeyPair = try exportKey(cmdSet: cmdSet, path: .walletPath, makeCurrent: false, publicOnly: true)
 
-      let info = try ApplicationInfo(cmdSet.select().checkOK().data)
+      let info = cmdSet.info!
 
       resolve([
         "address": bytesToHex(masterPair.toEthereumAddress()),
@@ -174,6 +174,24 @@ class SmartCard {
         "wallet-root-public-key": bytesToHex(rootKeyPair.publicKey),
         "wallet-address": bytesToHex(walletKeyPair.toEthereumAddress()),
         "wallet-public-key": bytesToHex(walletKeyPair.publicKey),
+        "whisper-address": bytesToHex(whisperKeyPair.toEthereumAddress()),
+        "whisper-public-key": bytesToHex(whisperKeyPair.publicKey),
+        "whisper-private-key": bytesToHex(whisperKeyPair.privateKey!),
+        "encryption-public-key": bytesToHex(encryptionKeyPair.publicKey),
+        "instance-uid": bytesToHex(info.instanceUID),
+        "key-uid": bytesToHex(info.keyUID)
+      ])
+    }
+
+    func getKeys(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+
+      let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
+      let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
+
+      let info = cmdSet.info!
+
+      resolve([
         "whisper-address": bytesToHex(whisperKeyPair.toEthereumAddress()),
         "whisper-public-key": bytesToHex(whisperKeyPair.publicKey),
         "whisper-private-key": bytesToHex(whisperKeyPair.privateKey!),

@@ -341,6 +341,38 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.verifyPIN(pin).checkOK();
         Log.i(TAG, "pin verified");
 
+        byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
+        BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlvWhisper);
+
+        byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
+        BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
+
+        ApplicationInfo info = cmdSet.getApplicationInfo();
+
+        WritableMap data = Arguments.createMap();
+        data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
+        data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
+        data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
+        data.putString("encryption-public-key", Hex.toHexString(encryptionKeyPair.getPublicKey()));
+        data.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
+        data.putString("key-uid", Hex.toHexString(info.getKeyUID()));
+
+        return data;
+    }
+
+    public WritableMap importKeys(final String pairingBase64, final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
         byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
         BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
 
@@ -353,10 +385,10 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
         BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlvWhisper);
 
-        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
+        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, false, true).checkOK().getData();
         BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlvWallet);
 
-        ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
+        ApplicationInfo info = cmdSet.getApplicationInfo();
 
         WritableMap data = Arguments.createMap();
         data.putString("address", Hex.toHexString(masterPair.toEthereumAddress()));
@@ -406,7 +438,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "Derived " + ENCRYPTION_PATH);
         BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
 
-        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, true, true).checkOK().getData();
+        byte[] tlvWallet = cmdSet.exportKey(WALLET_PATH, false, true).checkOK().getData();
         Log.i(TAG, "Derived " + WALLET_PATH);
         BIP32KeyPair walletKeyPair = BIP32KeyPair.fromTLV(tlvWallet);
 
