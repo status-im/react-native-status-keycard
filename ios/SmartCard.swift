@@ -276,6 +276,9 @@ class SmartCard {
       try cmdSet.removeKey().checkOK()
       os_log("key removed")
 
+      try cmdSet.unpairOthers()
+      os_log("unpaired others")
+
       try cmdSet.autoUnpair()
       os_log("card unpaired")
 
