@@ -21,6 +21,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import im.status.keycard.applet.RecoverableSignature;
 import im.status.keycard.globalplatform.GlobalPlatformCommandSet;
@@ -46,6 +49,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private EventEmitter eventEmitter;
     private static final String TAG = "SmartCard";
     private Boolean started = false;
+    private HashMap<String, String> pairings;
 
     private static final String MASTER_PATH = "m";
     private static final String ROOT_PATH = "m/44'/60'/0'/0";
@@ -58,6 +62,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         this.cardManager = new NFCCardManager();
         this.cardManager.setCardListener(this);
         this.eventEmitter = new EventEmitter(reactContext);
+        this.pairings = new HashMap<>();
     }
 
     public String getName() {
@@ -160,7 +165,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         // First thing to do is selecting the applet on the card.
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
-        Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
+    	String instanceUID = Hex.toHexString(info.getInstanceUID());
+        Log.i(TAG, "Instance UID: " + instanceUID);
         Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
         Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
         Log.i(TAG, "Application version: " + info.getAppVersionString());
@@ -169,7 +175,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.autoPair(pairingPassword);
 
         Pairing pairing = cmdSet.getPairing();
-
+        pairings.put(instanceUID, pairing.toBase64());
         return pairing.toBase64();
     }
 
@@ -416,6 +422,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         cmdSet.autoUnpair();
         Log.i(TAG, "card unpaired");
+        String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
+        pairings.remove(instanceUID);
     }
 
     public void delete() throws IOException, APDUException {
@@ -447,6 +455,9 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         cmdSet.autoUnpair();
         Log.i(TAG, "card unpaired");
+
+        String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
+        pairings.remove(instanceUID);
     }
 
     public void unpairAndDelete(final String pairingBase64, final String pin) throws IOException, APDUException {
@@ -535,6 +546,15 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return sig;
     }
 
+    public void setPairings(ReadableMap newPairings) {
+        pairings.clear();
+        Iterator<Map.Entry<String,Object>> i = newPairings.getEntryIterator();
+        while (i.hasNext()) {
+            Map.Entry<String, Object> entry = i.next();
+            pairings.put(entry.getKey(), (String) entry.getValue());
+        }
+    }
+
     private KeycardCommandSet authenticatedCommandSet(String pairingBase64, String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = securedCommandSet(pairingBase64);
         cmdSet.verifyPIN(pin).checkOK();
@@ -552,7 +572,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     private void openSecureChannel(KeycardCommandSet cmdSet, String pairingBase64) throws IOException, APDUException {
-        Pairing pairing = new Pairing(pairingBase64);
+        String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
+        Pairing pairing = new Pairing(pairings.get(instanceUID));
         cmdSet.setPairing(pairing);
 
         cmdSet.autoOpenSecureChannel();
