@@ -551,7 +551,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Iterator<Map.Entry<String,Object>> i = newPairings.getEntryIterator();
         while (i.hasNext()) {
             Map.Entry<String, Object> entry = i.next();
-            pairings.put(entry.getKey(), (String) entry.getValue());
+            String value = ((ReadableMap) entry.getValue()).getString("pairing");
+            pairings.put(entry.getKey(), value);
         }
     }
 
