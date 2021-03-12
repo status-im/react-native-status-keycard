@@ -153,7 +153,7 @@ class SmartCard {
       resolve(bytesToHex(key))
     }
 
-    func exportKeyWithPath(channel: CardChannel, String, pin: String, path: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+    func exportKeyWithPath(channel: CardChannel, pin: String, path: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let key = try BIP32KeyPair(fromTLV: cmdSet.exportKey(path: path, makeCurrent: false, publicOnly: true).checkOK().data).publicKey;
 
@@ -239,7 +239,7 @@ class SmartCard {
     }
 
     func verifyPin(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
+      let _ = try authenticatedCommandSet(channel: channel, pin: pin)
       resolve(3)
     }
 
