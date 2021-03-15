@@ -44,57 +44,57 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     @objc
-    func generateMnemonic(_ pairing: String, words: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func generateMnemonic(_ words: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.generateMnemonic(channel: channel, words: words, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func generateAndLoadKey(_ mnemonic: String, pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func generateAndLoadKey(_ mnemonic: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.generateAndLoadKey(channel: channel, mnemonic: mnemonic, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func saveMnemonic(_ mnemonic: String, pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func saveMnemonic(_ mnemonic: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.saveMnemonic(channel: channel, mnemonic: mnemonic, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func getApplicationInfo(_ pairingBase64: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func getApplicationInfo(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.getApplicationInfo(channel: channel, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func deriveKey(_ path: String, pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func deriveKey(_ path: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.deriveKey(channel: channel, path: path, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func exportKey(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func exportKey(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.exportKey(channel: channel, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func exportKeyWithPath(_ pairing: String, pin: String, path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func exportKeyWithPath(_ pin: String, path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.exportKeyWithPath(channel: channel, pin: pin, path: path, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func importKeys(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func importKeys(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.importKeys(channel: channel, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func getKeys(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func getKeys(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.getKeys(channel: channel, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func sign(_ pairing: String, pin: String, hash: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func sign(_ pin: String, hash: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.sign(channel: channel, pin: pin, message: hash, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func signWithPath(_ pairing: String, pin: String, path: String, hash: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func signWithPath(_ pin: String, path: String, hash: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.signWithPath(channel: channel, pin: pin, path: path, message: hash, resolve: resolve, reject: reject) }
     }
 
@@ -114,22 +114,22 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     @objc
-    func verifyPin(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func verifyPin(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.verifyPin(channel: channel, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func changePin(_ pairing: String, currentPin: String, newPin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func changePin(_ currentPin: String, newPin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.changePin(channel: channel, currentPin: currentPin, newPin: newPin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func unblockPin(_ pairing: String, puk: String, newPin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func unblockPin(_ puk: String, newPin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.unblockPin(channel: channel, puk: puk, newPin: newPin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func unpair(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func unpair(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.unpair(channel: channel, pin: pin, resolve: resolve, reject: reject) }
     }
 
@@ -139,17 +139,17 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     @objc
-    func removeKey(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func removeKey(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.removeKey(channel: channel, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func removeKeyWithUnpair(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func removeKeyWithUnpair(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.removeKeyWithUnpair(channel: channel, pin: pin, resolve: resolve, reject: reject) }
     }
 
     @objc
-    func unpairAndDelete(_ pairing: String, pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func unpairAndDelete(_ pin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       reject("E_KEYCARD", "Not implemented (unused)", nil)
     }
 

@@ -120,7 +120,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void generateMnemonic(final String pairing, final String words, final Promise promise) {
+    public void generateMnemonic(final String words, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -134,7 +134,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void generateAndLoadKey(final String mnemonic, final String pairing, final String pin, final Promise promise) {
+    public void generateAndLoadKey(final String mnemonic, final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -148,7 +148,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void saveMnemonic(final String mnemonic, final String pairing, final String pin, final Promise promise) {
+    public void saveMnemonic(final String mnemonic, final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -163,7 +163,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void getApplicationInfo(final String pairingBase64, final Promise promise) {
+    public void getApplicationInfo(final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -177,7 +177,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void deriveKey(final String path, final String pairing, final String pin, final Promise promise) {
+    public void deriveKey(final String path, final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -192,7 +192,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void exportKey(final String pairing, final String pin, final Promise promise) {
+    public void exportKey(final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -206,7 +206,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void exportKeyWithPath(final String pairing, final String pin, final String path, final Promise promise) {
+    public void exportKeyWithPath(final String pin, final String path, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -220,7 +220,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void getKeys(final String pairing, final String pin, final Promise promise) {
+    public void getKeys(final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -234,7 +234,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void importKeys(final String pairing, final String pin, final Promise promise) {
+    public void importKeys(final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -248,7 +248,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void sign(final String pairing, final String pin, final String hash, final Promise promise) {
+    public void sign(final String pin, final String hash, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -262,7 +262,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void signWithPath(final String pairing, final String pin, final String path, final String hash, final Promise promise) {
+    public void signWithPath(final String pin, final String path, final String hash, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -328,7 +328,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void verifyPin(final String pairing, final String pin, final Promise promise) {
+    public void verifyPin(final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -342,7 +342,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void changePin(final String pairing, final String currentPin, final String newPin, final Promise promise) {
+    public void changePin(final String currentPin, final String newPin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -357,7 +357,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void unblockPin(final String pairing, final String puk, final String newPin, final Promise promise) {
+    public void unblockPin(final String puk, final String newPin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -372,7 +372,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void unpair(final String pairing, final String pin, final Promise promise) {
+    public void unpair(final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -402,7 +402,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void removeKey(final String pairing, final String pin, final Promise promise) {
+    public void removeKey(final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -417,7 +417,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void removeKeyWithUnpair(final String pairing, final String pin, final Promise promise) {
+    public void removeKeyWithUnpair(final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -432,7 +432,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void unpairAndDelete(final String pairing, final String pin, final Promise promise) {
+    public void unpairAndDelete(final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
