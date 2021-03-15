@@ -165,7 +165,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         // First thing to do is selecting the applet on the card.
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
-    	String instanceUID = Hex.toHexString(info.getInstanceUID());
+        String instanceUID = Hex.toHexString(info.getInstanceUID());
         Log.i(TAG, "Instance UID: " + instanceUID);
         Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
         Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
