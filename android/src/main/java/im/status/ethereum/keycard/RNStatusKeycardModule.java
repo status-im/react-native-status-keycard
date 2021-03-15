@@ -124,7 +124,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.generateMnemonic(pairing, words));
+                    promise.resolve(smartCard.generateMnemonic(words));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -138,7 +138,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.generateAndLoadKey(mnemonic, pairing, pin));
+                    promise.resolve(smartCard.generateAndLoadKey(mnemonic, pin));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -152,7 +152,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    smartCard.saveMnemonic(mnemonic, pairing, pin);
+                    smartCard.saveMnemonic(mnemonic, pin);
                     promise.resolve(true);
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
@@ -167,7 +167,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.getApplicationInfo(pairingBase64));
+                    promise.resolve(smartCard.getApplicationInfo());
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -181,7 +181,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    smartCard.deriveKey(path, pairing, pin);
+                    smartCard.deriveKey(path, pin);
                     promise.resolve(path);
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
@@ -196,7 +196,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.exportKey(pairing, pin));
+                    promise.resolve(smartCard.exportKey(pin));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -210,7 +210,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.exportKeyWithPath(pairing, pin, path));
+                    promise.resolve(smartCard.exportKeyWithPath(pin, path));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -224,7 +224,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.getKeys(pairing, pin));
+                    promise.resolve(smartCard.getKeys(pin));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -238,7 +238,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.importKeys(pairing, pin));
+                    promise.resolve(smartCard.importKeys(pin));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -252,7 +252,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.sign(pairing, pin, hash));
+                    promise.resolve(smartCard.sign(pin, hash));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -266,7 +266,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.signWithPath(pairing, pin, path, hash));
+                    promise.resolve(smartCard.signWithPath(pin, path, hash));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -332,7 +332,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    promise.resolve(smartCard.verifyPin(pairing, pin));
+                    promise.resolve(smartCard.verifyPin(pin));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
@@ -346,7 +346,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    smartCard.changePin(pairing, currentPin, newPin);
+                    smartCard.changePin(currentPin, newPin);
                     promise.resolve(true);
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
@@ -361,7 +361,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    smartCard.unblockPin(pairing, puk, newPin);
+                    smartCard.unblockPin(puk, newPin);
                     promise.resolve(true);
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
@@ -376,7 +376,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    smartCard.unpair(pairing, pin);
+                    smartCard.unpair(pin);
                     promise.resolve(true);
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
@@ -406,7 +406,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    smartCard.removeKey(pairing, pin);
+                    smartCard.removeKey(pin);
                     promise.resolve(true);
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
@@ -421,7 +421,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    smartCard.removeKeyWithUnpair(pairing, pin);
+                    smartCard.removeKeyWithUnpair(pin);
                     promise.resolve(true);
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
@@ -436,7 +436,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    smartCard.unpairAndDelete(pairing, pin);
+                    smartCard.unpairAndDelete(pin);
                     promise.resolve(true);
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());

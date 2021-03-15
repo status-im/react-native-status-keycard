@@ -179,7 +179,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return pairing.toBase64();
     }
 
-    public String generateMnemonic(String pairingBase64, String words) throws IOException, APDUException {
+    public String generateMnemonic(String words) throws IOException, APDUException {
         KeycardCommandSet cmdSet = securedCommandSet();
 
         Mnemonic mnemonic = new Mnemonic(cmdSet.generateMnemonic(KeycardCommandSet.GENERATE_MNEMONIC_12_WORDS).checkOK().getData());
@@ -197,7 +197,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return mnemonic.toMnemonicPhrase();
     }
 
-    public void saveMnemonic(String mnemonic, String pairingBase64, String pin) throws IOException, APDUException {
+    public void saveMnemonic(String mnemonic, String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] seed = Mnemonic.toBinarySeed(mnemonic, "");
@@ -206,7 +206,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         log("seed loaded to card");
     }
 
-    public WritableMap getApplicationInfo(final String pairingBase64) throws IOException, APDUException {
+    public WritableMap getApplicationInfo() throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
@@ -257,7 +257,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return cardInfo;
     }
 
-    public void deriveKey(final String path, final String pairingBase64, final String pin) throws IOException, APDUException {
+    public void deriveKey(final String path, final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         KeyPath currentPath = new KeyPath(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
@@ -269,7 +269,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         }
     }
 
-    public String exportKey(final String pairingBase64, final String pin) throws IOException, APDUException {
+    public String exportKey(final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] key = cmdSet.exportCurrentKey(true).checkOK().getData();
@@ -277,7 +277,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return Hex.toHexString(key);
     }
 
-    public String exportKeyWithPath(final String pairingBase64, final String pin, final String path) throws IOException, APDUException {
+    public String exportKeyWithPath(final String pin, final String path) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] key = BIP32KeyPair.fromTLV(cmdSet.exportKey(path, false, true).checkOK().getData()).getPublicKey();
@@ -285,7 +285,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return Hex.toHexString(key);
     }
 
-    public WritableMap getKeys(final String pairingBase64, final String pin) throws IOException, APDUException {
+    public WritableMap getKeys(final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
@@ -307,7 +307,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return data;
     }
 
-    public WritableMap importKeys(final String pairingBase64, final String pin) throws IOException, APDUException {
+    public WritableMap importKeys(final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
@@ -344,7 +344,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return data;
     }
 
-    public WritableMap generateAndLoadKey(final String mnemonic, final String pairingBase64, final String pin) throws IOException, APDUException {
+    public WritableMap generateAndLoadKey(final String mnemonic, final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] seed = Mnemonic.toBinarySeed(mnemonic, "");
@@ -400,26 +400,26 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return init(userPin);
     }
 
-    public int verifyPin(final String pairingBase64, final String pin) throws IOException, APDUException {
+    public int verifyPin(final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
         return 3;
     }
 
-    public void changePin(final String pairingBase64, final String currentPin, final String newPin) throws IOException, APDUException {
+    public void changePin(final String currentPin, final String newPin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(currentPin);
 
         cmdSet.changePIN(0, newPin);
         Log.i(TAG, "pin changed");
     }
 
-    public void unblockPin(final String pairingBase64, final String puk, final String newPin) throws IOException, APDUException {
+    public void unblockPin(final String puk, final String newPin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = securedCommandSet();
 
         cmdSet.unblockPIN(puk, newPin).checkOK();
         Log.i(TAG, "pin unblocked");
     }
 
-    public void unpair(final String pairingBase64, final String pin) throws IOException, APDUException {
+    public void unpair(final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         cmdSet.autoUnpair();
@@ -439,14 +439,14 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "instance and package deleted");
     }
 
-    public void removeKey(final String pairingBase64, final String pin) throws IOException, APDUException {
+    public void removeKey(final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         cmdSet.removeKey();
         Log.i(TAG, "key removed");
     }
 
-    public void removeKeyWithUnpair(final String pairingBase64, final String pin) throws IOException, APDUException {
+    public void removeKeyWithUnpair(final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         cmdSet.removeKey();
@@ -462,12 +462,12 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         pairings.remove(instanceUID);
     }
 
-    public void unpairAndDelete(final String pairingBase64, final String pin) throws IOException, APDUException {
-        unpair(pairingBase64, pin);
+    public void unpairAndDelete(final String pin) throws IOException, APDUException {
+        unpair(pin);
         delete();
     }
 
-    public String sign(final String pairingBase64, final String pin, final String message) throws IOException, APDUException {
+    public String sign(final String pin, final String message) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] hash = Hex.decode(message);
@@ -490,7 +490,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return sig;
     }
 
-    public String signWithPath(final String pairingBase64, final String pin, final String path, final String message) throws IOException, APDUException {
+    public String signWithPath(final String pin, final String path, final String message) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] hash = Hex.decode(message);
