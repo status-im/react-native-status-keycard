@@ -21,6 +21,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import im.status.keycard.applet.RecoverableSignature;
 import im.status.keycard.globalplatform.GlobalPlatformCommandSet;
@@ -46,6 +49,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private EventEmitter eventEmitter;
     private static final String TAG = "SmartCard";
     private Boolean started = false;
+    private HashMap<String, String> pairings;
 
     private static final String MASTER_PATH = "m";
     private static final String ROOT_PATH = "m/44'/60'/0'/0";
@@ -58,6 +62,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         this.cardManager = new NFCCardManager();
         this.cardManager.setCardListener(this);
         this.eventEmitter = new EventEmitter(reactContext);
+        this.pairings = new HashMap<>();
     }
 
     public String getName() {
@@ -160,7 +165,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         // First thing to do is selecting the applet on the card.
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
-        Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
+        String instanceUID = Hex.toHexString(info.getInstanceUID());
+        Log.i(TAG, "Instance UID: " + instanceUID);
         Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
         Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
         Log.i(TAG, "Application version: " + info.getAppVersionString());
@@ -169,19 +175,12 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.autoPair(pairingPassword);
 
         Pairing pairing = cmdSet.getPairing();
-
+        pairings.put(instanceUID, pairing.toBase64());
         return pairing.toBase64();
     }
 
-    public String generateMnemonic(String pairingBase64, String words) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
+    public String generateMnemonic(String words) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = securedCommandSet();
 
         Mnemonic mnemonic = new Mnemonic(cmdSet.generateMnemonic(KeycardCommandSet.GENERATE_MNEMONIC_12_WORDS).checkOK().getData());
 
@@ -198,18 +197,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return mnemonic.toMnemonicPhrase();
     }
 
-    public void saveMnemonic(String mnemonic, String pairingBase64, String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public void saveMnemonic(String mnemonic, String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] seed = Mnemonic.toBinarySeed(mnemonic, "");
         cmdSet.loadKey(seed);
@@ -217,7 +206,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         log("seed loaded to card");
     }
 
-    public WritableMap getApplicationInfo(final String pairingBase64) throws IOException, APDUException {
+    public WritableMap getApplicationInfo() throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
@@ -227,7 +216,9 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cardInfo.putBoolean("initialized?", info.isInitializedCard());
 
         if (info.isInitializedCard()) {
-            Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
+            String instanceUID = Hex.toHexString(info.getInstanceUID());
+
+            Log.i(TAG, "Instance UID: " + instanceUID);
             Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
             Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
             Log.i(TAG, "Application version: " + info.getAppVersionString());
@@ -235,13 +226,9 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
             Boolean isPaired = false;
 
-            if (pairingBase64.length() > 0) {
-                Pairing pairing = new Pairing(pairingBase64);
-                cmdSet.setPairing(pairing);
-
+            if (pairings.containsKey(instanceUID)) {
                 try {
-                    cmdSet.autoOpenSecureChannel();
-                    Log.i(TAG, "secure channel opened");
+                    openSecureChannel(cmdSet);
                     isPaired = true;
                 } catch(APDUException e) {
                     Log.i(TAG, "autoOpenSecureChannel failed: " + e.getMessage());
@@ -270,18 +257,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return cardInfo;
     }
 
-    public void deriveKey(final String path, final String pairingBase64, final String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public void deriveKey(final String path, final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         KeyPath currentPath = new KeyPath(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
         Log.i(TAG, "Current key path: " + currentPath);
@@ -292,54 +269,24 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         }
     }
 
-    public String exportKey(final String pairingBase64, final String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public String exportKey(final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] key = cmdSet.exportCurrentKey(true).checkOK().getData();
 
         return Hex.toHexString(key);
     }
 
-    public String exportKeyWithPath(final String pairingBase64, final String pin, final String path) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public String exportKeyWithPath(final String pin, final String path) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] key = BIP32KeyPair.fromTLV(cmdSet.exportKey(path, false, true).checkOK().getData()).getPublicKey();
 
         return Hex.toHexString(key);
     }
 
-    public WritableMap getKeys(final String pairingBase64, final String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public WritableMap getKeys(final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] tlvWhisper = cmdSet.exportKey(WHISPER_PATH, false, false).checkOK().getData();
         BIP32KeyPair whisperKeyPair = BIP32KeyPair.fromTLV(tlvWhisper);
@@ -360,18 +307,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return data;
     }
 
-    public WritableMap importKeys(final String pairingBase64, final String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public WritableMap importKeys(final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] tlvEncryption = cmdSet.exportKey(ENCRYPTION_PATH, false, false).checkOK().getData();
         BIP32KeyPair encryptionKeyPair = BIP32KeyPair.fromTLV(tlvEncryption);
@@ -407,18 +344,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return data;
     }
 
-    public WritableMap generateAndLoadKey(final String mnemonic, final String pairingBase64, final String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public WritableMap generateAndLoadKey(final String mnemonic, final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] seed = Mnemonic.toBinarySeed(mnemonic, "");
         BIP32KeyPair keyPair = BIP32KeyPair.fromBinarySeed(seed);
@@ -473,70 +400,32 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return init(userPin);
     }
 
-    public int verifyPin(final String pairingBase64, final String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
-
-        ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
-
-        return status.getPINRetryCount();
+    public int verifyPin(final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
+        return 3;
     }
 
-    public void changePin(final String pairingBase64, final String currentPin, final String newPin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(currentPin).checkOK();
-        Log.i(TAG, "pin verified");
+    public void changePin(final String currentPin, final String newPin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(currentPin);
 
         cmdSet.changePIN(0, newPin);
         Log.i(TAG, "pin changed");
     }
 
-    public void unblockPin(final String pairingBase64, final String puk, final String newPin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
+    public void unblockPin(final String puk, final String newPin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = securedCommandSet();
 
         cmdSet.unblockPIN(puk, newPin).checkOK();
         Log.i(TAG, "pin unblocked");
     }
 
-    public void unpair(final String pairingBase64, final String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public void unpair(final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         cmdSet.autoUnpair();
         Log.i(TAG, "card unpaired");
+        String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
+        pairings.remove(instanceUID);
     }
 
     public void delete() throws IOException, APDUException {
@@ -550,35 +439,15 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "instance and package deleted");
     }
 
-    public void removeKey(final String pairingBase64, final String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public void removeKey(final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         cmdSet.removeKey();
         Log.i(TAG, "key removed");
     }
 
-    public void removeKeyWithUnpair(final String pairingBase64, final String pin) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public void removeKeyWithUnpair(final String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         cmdSet.removeKey();
         Log.i(TAG, "key removed");
@@ -588,25 +457,18 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         cmdSet.autoUnpair();
         Log.i(TAG, "card unpaired");
+
+        String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
+        pairings.remove(instanceUID);
     }
 
-    public void unpairAndDelete(final String pairingBase64, final String pin) throws IOException, APDUException {
-        unpair(pairingBase64, pin);
+    public void unpairAndDelete(final String pin) throws IOException, APDUException {
+        unpair(pin);
         delete();
     }
 
-    public String sign(final String pairingBase64, final String pin, final String message) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public String sign(final String pin, final String message) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] hash = Hex.decode(message);
         RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
@@ -628,18 +490,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return sig;
     }
 
-    public String signWithPath(final String pairingBase64, final String pin, final String path, final String message) throws IOException, APDUException {
-        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        Pairing pairing = new Pairing(pairingBase64);
-        cmdSet.setPairing(pairing);
-
-        cmdSet.autoOpenSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.verifyPIN(pin).checkOK();
-        Log.i(TAG, "pin verified");
+    public String signWithPath(final String pin, final String path, final String message) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
         byte[] hash = Hex.decode(message);
 
@@ -695,4 +547,46 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         return sig;
     }
+
+    public void setPairings(ReadableMap newPairings) {
+        pairings.clear();
+        Iterator<Map.Entry<String,Object>> i = newPairings.getEntryIterator();
+        while (i.hasNext()) {
+            Map.Entry<String, Object> entry = i.next();
+            String value = ((ReadableMap) entry.getValue()).getString("pairing");
+            pairings.put(entry.getKey(), value);
+        }
+    }
+
+    private KeycardCommandSet authenticatedCommandSet(String pin) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = securedCommandSet();
+        cmdSet.verifyPIN(pin).checkOK();
+        Log.i(TAG, "pin verified");
+
+        return cmdSet;
+    }
+
+    private KeycardCommandSet securedCommandSet() throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+        openSecureChannel(cmdSet);
+
+        return cmdSet;
+    }
+
+    private void openSecureChannel(KeycardCommandSet cmdSet) throws IOException, APDUException {
+        String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
+        String pairingBase64 = pairings.get(instanceUID);
+
+        if (pairingBase64 == null) {
+            throw new APDUException("No pairing found");
+        }
+
+        Pairing pairing = new Pairing(pairingBase64);
+        cmdSet.setPairing(pairing);
+
+        cmdSet.autoOpenSecureChannel();
+        Log.i(TAG, "secure channel opened");
+    }
+
 }

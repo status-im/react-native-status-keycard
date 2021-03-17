@@ -4,6 +4,7 @@ import os.log
 
 enum SmartCardError: Error {
     case invalidBase64
+    case noPairing
 }
 
 enum DerivationPath: String {
@@ -15,6 +16,8 @@ enum DerivationPath: String {
 }
 
 class SmartCard {
+    var pairings: [String: String] = [:]
+
     func initialize(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let puk = self.randomPUK()
       let pairingPassword = self.randomPairingPassword();
@@ -33,12 +36,13 @@ class SmartCard {
       logAppInfo(info)
 
       try cmdSet.autoPair(password: pairingPassword)
-
-      resolve(Data(cmdSet.pairing!.bytes).base64EncodedString())
+      let pairing = Data(cmdSet.pairing!.bytes).base64EncodedString()
+      self.pairings[bytesToHex(info.instanceUID)] = pairing
+      resolve(pairing)
     }
 
-    func generateMnemonic(channel: CardChannel, pairingBase64: String, words: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
+    func generateMnemonic(channel: CardChannel, words: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try securedCommandSet(channel: channel)
 
       let mnemonic = try Mnemonic(rawData: cmdSet.generateMnemonic(length: GenerateMnemonicP1.length12Words).checkOK().data)
       mnemonic.wordList = words.components(separatedBy: .newlines)
@@ -46,8 +50,8 @@ class SmartCard {
       resolve(mnemonic.toMnemonicPhrase())
     }
 
-    func generateAndLoadKey(channel: CardChannel, mnemonic: String, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func generateAndLoadKey(channel: CardChannel, mnemonic: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let seed = Mnemonic.toBinarySeed(mnemonicPhrase: mnemonic)
       let keyPair = BIP32KeyPair(fromSeed: seed)
 
@@ -77,15 +81,15 @@ class SmartCard {
       ])
     }
 
-    func saveMnemonic(channel: CardChannel, mnemonic: String, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func saveMnemonic(channel: CardChannel, mnemonic: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let seed = Mnemonic.toBinarySeed(mnemonicPhrase: mnemonic)
       try cmdSet.loadKey(seed: seed).checkOK()
       os_log("seed loaded to card");
       resolve(true)
     }
 
-    func getApplicationInfo(channel: CardChannel, pairingBase64: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+    func getApplicationInfo(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       let info = try ApplicationInfo(cmdSet.select().checkOK().data)
 
@@ -97,9 +101,9 @@ class SmartCard {
         logAppInfo(info)
         var isPaired = false
 
-        if (!pairingBase64.isEmpty) {
+        if let _ = self.pairings[bytesToHex(info.instanceUID)] {
           do {
-            try openSecureChannel(cmdSet: cmdSet, pairingBase64: pairingBase64)
+            try openSecureChannel(cmdSet: cmdSet)
             isPaired = true
           } catch let error as CardError {
             os_log("autoOpenSecureChannel failed: %@", String(describing: error));
@@ -130,8 +134,8 @@ class SmartCard {
       resolve(cardInfo)
     }
 
-    func deriveKey(channel: CardChannel, path: String, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func deriveKey(channel: CardChannel, path: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let currentPath = try KeyPath(data: cmdSet.getStatus(info: GetStatusP1.keyPath.rawValue).checkOK().data);
       os_log("Current key path: %@", currentPath.description)
 
@@ -143,21 +147,21 @@ class SmartCard {
       resolve(true)
     }
 
-    func exportKey(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func exportKey(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let key = try cmdSet.exportCurrentKey(publicOnly: true).checkOK().data
       resolve(bytesToHex(key))
     }
 
-    func exportKeyWithPath(channel: CardChannel, pairingBase64: String, pin: String, path: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func exportKeyWithPath(channel: CardChannel, pin: String, path: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let key = try BIP32KeyPair(fromTLV: cmdSet.exportKey(path: path, makeCurrent: false, publicOnly: true).checkOK().data).publicKey;
 
       resolve(bytesToHex(key))
     }
 
-    func importKeys(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func importKeys(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
 
       let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
       let masterPair = try exportKey(cmdSet: cmdSet, path: .masterPath, makeCurrent: false, publicOnly: true)
@@ -183,8 +187,8 @@ class SmartCard {
       ])
     }
 
-    func getKeys(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func getKeys(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
 
       let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
       let encryptionKeyPair = try exportKey(cmdSet: cmdSet, path: .encryptionPath, makeCurrent: false, publicOnly: false)
@@ -201,14 +205,14 @@ class SmartCard {
       ])
     }
 
-    func sign(channel: CardChannel, pairingBase64: String, pin: String, message: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func sign(channel: CardChannel, pin: String, message: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let sig = try processSignature(message) { return try cmdSet.sign(hash: $0) }
       resolve(sig)
     }
 
-    func signWithPath(channel: CardChannel, pairingBase64: String, pin: String, path: String, message: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func signWithPath(channel: CardChannel, pin: String, path: String, message: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let sig = try processSignature(message) {
         if (cmdSet.info!.appVersion < 0x0202) {
           let currentPath = try KeyPath(data: cmdSet.getStatus(info: GetStatusP1.keyPath.rawValue).checkOK().data);
@@ -234,45 +238,45 @@ class SmartCard {
       resolve(sig)
     }
 
-    func verifyPin(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
-      let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
-      resolve(status.pinRetryCount)
+    func verifyPin(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let _ = try authenticatedCommandSet(channel: channel, pin: pin)
+      resolve(3)
     }
 
-    func changePin(channel: CardChannel, pairingBase64: String, currentPin: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: currentPin)
+    func changePin(channel: CardChannel, currentPin: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: currentPin)
       try cmdSet.changePIN(pin: newPin).checkOK()
       os_log("pin changed")
       resolve(true)
     }
 
-    func unblockPin(channel: CardChannel, pairingBase64: String, puk: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
+    func unblockPin(channel: CardChannel, puk: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try securedCommandSet(channel: channel)
       try cmdSet.unblockPIN(puk: puk, newPIN: newPin).checkAuthOK()
       os_log("pin unblocked")
       resolve(true)
     }
 
-    func unpair(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func unpair(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
 
       try cmdSet.autoUnpair()
       os_log("card unpaired")
 
+      self.pairings[bytesToHex(cmdSet.info!.instanceUID)] = nil
       resolve(true)
     }
 
-    func removeKey(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func removeKey(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       try cmdSet.removeKey().checkOK()
       os_log("key removed")
 
       resolve(true)
     }
 
-    func removeKeyWithUnpair(channel: CardChannel, pairingBase64: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet = try authenticatedCommandSet(channel: channel, pairingBase64: pairingBase64, pin: pin)
+    func removeKeyWithUnpair(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       try cmdSet.removeKey().checkOK()
       os_log("key removed")
 
@@ -281,6 +285,8 @@ class SmartCard {
 
       try cmdSet.autoUnpair()
       os_log("card unpaired")
+
+      self.pairings[bytesToHex(cmdSet.info!.instanceUID)] = nil
 
       resolve(true)
     }
@@ -301,27 +307,40 @@ class SmartCard {
       return try BIP32KeyPair(fromTLV: tlvRoot)
     }
 
-    func authenticatedCommandSet(channel: CardChannel, pairingBase64: String, pin: String) throws -> KeycardCommandSet {
-      let cmdSet = try securedCommandSet(channel: channel, pairingBase64: pairingBase64)
+    func setPairings(newPairings: NSDictionary, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+      self.pairings.removeAll()
+      for case let (instanceUID as String, v as NSDictionary) in newPairings {
+        self.pairings[instanceUID] = v["pairing"] as? String
+      }
+
+      resolve(true)
+    }
+
+    func authenticatedCommandSet(channel: CardChannel, pin: String) throws -> KeycardCommandSet {
+      let cmdSet = try securedCommandSet(channel: channel)
       try cmdSet.verifyPIN(pin: pin).checkAuthOK()
       os_log("pin verified")
 
       return cmdSet;
     }
 
-    func securedCommandSet(channel: CardChannel, pairingBase64: String) throws -> KeycardCommandSet {
+    func securedCommandSet(channel: CardChannel) throws -> KeycardCommandSet {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       try cmdSet.select().checkOK()
-      try openSecureChannel(cmdSet: cmdSet, pairingBase64: pairingBase64)
+      try openSecureChannel(cmdSet: cmdSet)
 
       return cmdSet
     }
 
-    func openSecureChannel(cmdSet: KeycardCommandSet, pairingBase64: String) throws -> Void {
-      cmdSet.pairing = try base64ToPairing(pairingBase64)
+    func openSecureChannel(cmdSet: KeycardCommandSet) throws -> Void {
+      if let pairingBase64 = self.pairings[bytesToHex(cmdSet.info!.instanceUID)] {
+        cmdSet.pairing = try base64ToPairing(pairingBase64)
 
-      try cmdSet.autoOpenSecureChannel()
-      os_log("secure channel opened")
+        try cmdSet.autoOpenSecureChannel()
+        os_log("secure channel opened")
+      } else {
+        throw SmartCardError.noPairing
+      }
     }
 
     func processSignature(_ message: String, sign: ([UInt8]) throws -> APDUResponse) throws -> String {
