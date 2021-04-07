@@ -357,7 +357,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
-    public void changePUK(final String pin, final String pin, final Promise promise) {
+    public void changePUK(final String pin, final String puk, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {
                 try {
