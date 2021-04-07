@@ -405,10 +405,24 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return 3;
     }
 
+    public void changePairingPassword(final String pin, final String pairingPassword) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
+
+        cmdSet.changePairingPassword(pairingPassword);
+        Log.i(TAG, "pairing password changed");
+    }
+
+    public void changePUK(final String pin, final String puk) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
+
+        cmdSet.changePUK(puk);
+        Log.i(TAG, "puk changed");
+    }
+
     public void changePin(final String currentPin, final String newPin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(currentPin);
 
-        cmdSet.changePIN(0, newPin);
+        cmdSet.changePIN(newPin);
         Log.i(TAG, "pin changed");
     }
 

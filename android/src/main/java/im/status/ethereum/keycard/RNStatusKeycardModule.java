@@ -342,6 +342,36 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
+    public void changePairingPassword(final String pin, final String pairingPassword, final Promise promise) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    smartCard.changePairingPassword(pin, pairingPassword);
+                    promise.resolve(true);
+                } catch (IOException | APDUException e) {
+                    Log.d(TAG, e.getMessage());
+                    promise.reject(e);
+                }
+            }
+        }).start();
+    }
+
+    @ReactMethod
+    public void changePUK(final String pin, final String pin, final Promise promise) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    smartCard.changePUK(pin, puk);
+                    promise.resolve(true);
+                } catch (IOException | APDUException e) {
+                    Log.d(TAG, e.getMessage());
+                    promise.reject(e);
+                }
+            }
+        }).start();
+    }
+
+    @ReactMethod
     public void changePin(final String currentPin, final String newPin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {

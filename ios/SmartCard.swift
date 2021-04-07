@@ -243,6 +243,20 @@ class SmartCard {
       resolve(3)
     }
 
+    func changePairingPassword(channel: CardChannel, pin: String, pairingPassword: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
+      try cmdSet.changePairingPassword(pairingPassword: pairingPassword).checkOK()
+      os_log("pairing password changed")
+      resolve(true)
+    }
+
+    func changePUK(channel: CardChannel, pin: String, puk: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
+      try cmdSet.changePUK(puk: puk).checkOK()
+      os_log("puk changed")
+      resolve(true)
+    }
+
     func changePin(channel: CardChannel, currentPin: String, newPin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try authenticatedCommandSet(channel: channel, pin: currentPin)
       try cmdSet.changePIN(pin: newPin).checkOK()
