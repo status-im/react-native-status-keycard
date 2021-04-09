@@ -23,6 +23,8 @@ RCT_EXTERN_METHOD(signPinless:(NSString *)hash resolve:(RCTPromiseResolveBlock)r
 RCT_EXTERN_METHOD(installApplet:(RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(installAppletAndInitCard:(String *)pin resolve: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(verifyPin:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(changePairingPassword:(NSString *)pin pairingPassword:(NSString *)pairingPassword resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(changePUK:(NSString *)pin puk:(NSString *)puk resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(changePin:(NSString *)currentPin newPin:(NSString *)newPin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(unblockPin:(NSString *)puk newPin:(NSString *)newPin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(unpair:(NSString *)pin resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)

@@ -119,6 +119,16 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     @objc
+    func changePairingPassword(_ pin: String, pairingPassword: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.changePairingPassword(channel: channel, pin: pin, pairingPassword: pairingPassword, resolve: resolve, reject: reject) }
+    }
+
+    @objc
+    func changePUK(_ pin: String, puk: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.changePUK(channel: channel, pin: pin, puk: puk, resolve: resolve, reject: reject) }
+    }
+
+    @objc
     func changePin(_ currentPin: String, newPin: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.changePin(channel: channel, currentPin: currentPin, newPin: newPin, resolve: resolve, reject: reject) }
     }
