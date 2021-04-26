@@ -1,6 +1,6 @@
 package im.status.ethereum.keycard;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Base64;
 
 import static android.util.Base64.NO_PADDING;

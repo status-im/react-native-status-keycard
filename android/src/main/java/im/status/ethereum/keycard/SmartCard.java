@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.nfc.NfcAdapter;
-import android.support.annotation.Nullable;
 import android.util.EventLog;
 import android.util.Log;
 
