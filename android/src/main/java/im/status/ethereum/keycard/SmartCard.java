@@ -28,6 +28,7 @@ import java.util.Iterator;
 import im.status.keycard.applet.RecoverableSignature;
 import im.status.keycard.globalplatform.GlobalPlatformCommandSet;
 import im.status.keycard.io.APDUException;
+import im.status.keycard.io.APDUResponse;
 import im.status.keycard.io.CardChannel;
 import im.status.keycard.io.CardListener;
 import im.status.keycard.android.NFCCardManager;
