@@ -100,10 +100,10 @@ class SmartCard {
       try cmdSet.deleteKeycardInstance().checkSW(StatusWord.ok, StatusWord.referencedDataNotFound)
       os_log("Keycard applet instance deleted")
 
-      try cmdSet.installKeycardApplet().checkOK()
+      try cmdSet.installKeycardInstance().checkOK()
       os_log("Keycard applet instance re-installed")
 
-      ApplicationInfo info = try ApplicationInfo(KeycardCommandSet(cardChannel: channel).select().checkOK().data)
+      let info = try ApplicationInfo(KeycardCommandSet(cardChannel: channel).select().checkOK().data)
       os_log("Selecting the newly installed Keycard applet succeeded")
 
       var cardInfo = [String: Any]()
