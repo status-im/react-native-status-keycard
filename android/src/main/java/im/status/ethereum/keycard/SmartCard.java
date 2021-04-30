@@ -28,6 +28,7 @@ import java.util.Iterator;
 import im.status.keycard.applet.RecoverableSignature;
 import im.status.keycard.globalplatform.GlobalPlatformCommandSet;
 import im.status.keycard.io.APDUException;
+import im.status.keycard.io.APDUResponse;
 import im.status.keycard.io.CardChannel;
 import im.status.keycard.io.CardListener;
 import im.status.keycard.android.NFCCardManager;
@@ -253,6 +254,29 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
             cardInfo.putString("app-version", info.getAppVersionString());
             cardInfo.putInt("free-pairing-slots", info.getFreePairingSlots());
         }
+
+        return cardInfo;
+    }
+
+    public WritableMap factoryReset() throws IOException, APDUException {
+        GlobalPlatformCommandSet cmdSet = new GlobalPlatformCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+        Log.i(TAG, "ISD selected");
+
+        cmdSet.openSecureChannel();
+        Log.i(TAG, "SecureChannel opened");
+
+        cmdSet.deleteKeycardInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
+        Log.i(TAG, "Keycard applet instance deleted");
+
+        cmdSet.installKeycardApplet().checkOK();
+        Log.i(TAG, "Keycard applet instance re-installed");
+
+        ApplicationInfo info = new ApplicationInfo(new KeycardCommandSet(this.cardChannel).select().checkOK().getData());
+        Log.i(TAG, "Selecting the newly installed Keycard applet succeeded");
+
+        WritableMap cardInfo = Arguments.createMap();
+        cardInfo.putBoolean("initialized?", info.isInitializedCard());
 
         return cardInfo;
     }
