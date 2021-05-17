@@ -177,6 +177,20 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     }
 
     @ReactMethod
+    public void factoryReset(final Promise promise) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    promise.resolve(smartCard.factoryReset());
+                } catch (IOException | APDUException e) {
+                    Log.d(TAG, e.getMessage());
+                    promise.reject(e);
+                }
+            }
+        }).start();
+    }
+
+    @ReactMethod
     public void deriveKey(final String path, final String pin, final Promise promise) {
         new Thread(new Runnable() {
             public void run() {

@@ -89,6 +89,29 @@ class SmartCard {
       resolve(true)
     }
 
+    func factoryReset(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet: GlobalPlatformCommandSet = GlobalPlatformCommandSet(cardChannel: channel);
+      try cmdSet.select().checkOK()
+      os_log("ISD selected")
+
+      try cmdSet.openSecureChannel()
+      os_log("SecureChannel opened")
+
+      try cmdSet.deleteKeycardInstance().checkSW(StatusWord.ok, StatusWord.referencedDataNotFound)
+      os_log("Keycard applet instance deleted")
+
+      try cmdSet.installKeycardInstance().checkOK()
+      os_log("Keycard applet instance re-installed")
+
+      let info = try ApplicationInfo(KeycardCommandSet(cardChannel: channel).select().checkOK().data)
+      os_log("Selecting the newly installed Keycard applet succeeded")
+
+      var cardInfo = [String: Any]()
+      cardInfo["initialized?"] = info.initializedCard
+
+      resolve(cardInfo)
+    }
+
     func getApplicationInfo(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       let info = try ApplicationInfo(cmdSet.select().checkOK().data)

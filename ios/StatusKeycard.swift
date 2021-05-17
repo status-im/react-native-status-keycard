@@ -59,6 +59,11 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     @objc
+    func factoryReset(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+      keycardInvokation(reject) { [unowned self] channel in try self.smartCard.factoryReset(channel: channel, resolve: resolve, reject: reject) }
+    }
+
+    @objc
     func getApplicationInfo(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       keycardInvokation(reject) { [unowned self] channel in try self.smartCard.getApplicationInfo(channel: channel, resolve: resolve, reject: reject) }
     }
