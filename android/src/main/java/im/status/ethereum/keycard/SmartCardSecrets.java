@@ -1,6 +1,5 @@
 package im.status.ethereum.keycard;
 
-import android.support.annotation.NonNull;
 import android.util.Base64;
 
 import static android.util.Base64.NO_PADDING;
@@ -29,7 +28,6 @@ public class SmartCardSecrets {
         this.pairingPassword = pairingPassword;
     }
 
-    @NonNull
     public static SmartCardSecrets generate(final String userPin) throws NoSuchAlgorithmException, InvalidKeySpecException {
         String pairingPassword = "KeycardDefaultPairing";
         long pinNumber = randomLong(PIN_BOUND);
