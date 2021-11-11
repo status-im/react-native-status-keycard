@@ -206,7 +206,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         log("seed loaded to card");
     }
 
-    public boolean tryDefaultPairing(KeycardCommandSet cmdSet, String instanceUID, WritableMap cardInfo) {
+    public boolean tryDefaultPairing(KeycardCommandSet cmdSet, String instanceUID, WritableMap cardInfo) throws IOException {
         try {
             cmdSet.autoPair("KeycardDefaultPairing");
             openSecureChannel(cmdSet);
