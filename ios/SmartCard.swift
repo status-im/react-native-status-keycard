@@ -125,15 +125,15 @@ class SmartCard {
         var isPaired = false
 
         if let _ = self.pairings[bytesToHex(info.instanceUID)] {
-          isPaired = try tryDefaultPairing(cmdSet: cmdSet, instanceUID: info.instanceUID, cardInfo: cardInfo)
+          isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
         } else {
           do {
             try openSecureChannel(cmdSet: cmdSet)
             isPaired = true
           } catch let error as CardError {
-            isPaired = try tryDefaultPairing(cmdSet: cmdSet, instanceUID: info.instanceUID, cardInfo: cardInfo)
+            isPaired = try tryDefaultPairing(cmdSet: cmdSet, instanceUID: info.instanceUID, cardInfo: &cardInfo)
           } catch let error as StatusWord {
-            isPaired = try tryDefaultPairing(cmdSet: cmdSet, instanceUID: info.instanceUID, cardInfo: cardInfo)
+            isPaired = try tryDefaultPairing(cmdSet: cmdSet, instanceUID: info.instanceUID, cardInfo: &cardInfo)
           }
         }
 
@@ -371,12 +371,12 @@ class SmartCard {
       return cmdSet
     }
 
-    func tryDefaultPairing(cmdSet: KeycardCommandSet, instanceUID: String, cardInfo: [String: Any]) throws -> Bool {
+    func tryDefaultPairing(cmdSet: KeycardCommandSet, cardInfo: inout [String: Any]) throws -> Bool {
       do {
         try cmdSet.autoPair(password: "KeycardDefaultPairing")
         try openSecureChannel(cmdSet: cmdSet)
         let pairing = Data(cmdSet.pairing!.bytes).base64EncodedString()
-        self.pairings[bytesToHex(instanceUID)] = pairing
+        self.pairings[bytesToHex(cmdSet.info!.instanceUID)] = pairing
         cardInfo["new-pairing"] = pairing
         return true
       } catch let error as CardError {
