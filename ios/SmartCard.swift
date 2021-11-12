@@ -374,10 +374,11 @@ class SmartCard {
     func tryDefaultPairing(cmdSet: KeycardCommandSet, cardInfo: inout [String: Any]) throws -> Bool {
       do {
         try cmdSet.autoPair(password: "KeycardDefaultPairing")
-        try openSecureChannel(cmdSet: cmdSet)
         let pairing = Data(cmdSet.pairing!.bytes).base64EncodedString()
         self.pairings[bytesToHex(cmdSet.info!.instanceUID)] = pairing
         cardInfo["new-pairing"] = pairing
+
+        try openSecureChannel(cmdSet: cmdSet)
         return true
       } catch let error as CardError {
         os_log("autoOpenSecureChannel failed: %@", String(describing: error));

@@ -209,12 +209,12 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     public boolean tryDefaultPairing(KeycardCommandSet cmdSet, String instanceUID, WritableMap cardInfo) throws IOException {
         try {
             cmdSet.autoPair("KeycardDefaultPairing");
-            openSecureChannel(cmdSet);
 
             Pairing pairing = cmdSet.getPairing();
             pairings.put(instanceUID, pairing.toBase64());
             cardInfo.putString("new-pairing", pairing.toBase64());
 
+            openSecureChannel(cmdSet);
             return true;
         } catch(APDUException e) {
             Log.i(TAG, "autoOpenSecureChannel failed: " + e.getMessage());
