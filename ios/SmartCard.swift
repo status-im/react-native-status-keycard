@@ -385,6 +385,8 @@ class SmartCard {
       } catch let error as StatusWord {
         os_log("autoOpenSecureChannel failed: %@", String(describing: error));
       }
+
+      return false
     }
 
     func openSecureChannel(cmdSet: KeycardCommandSet) throws -> Void {
