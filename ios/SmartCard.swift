@@ -125,8 +125,6 @@ class SmartCard {
         var isPaired = false
 
         if let _ = self.pairings[bytesToHex(info.instanceUID)] {
-          isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
-        } else {
           do {
             try openSecureChannel(cmdSet: cmdSet)
             isPaired = true
@@ -135,6 +133,8 @@ class SmartCard {
           } catch let error as StatusWord {
             isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
           }
+        } else {
+          isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
         }
 
         if (isPaired) {
