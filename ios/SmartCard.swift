@@ -131,9 +131,9 @@ class SmartCard {
             try openSecureChannel(cmdSet: cmdSet)
             isPaired = true
           } catch let error as CardError {
-            isPaired = try tryDefaultPairing(cmdSet: cmdSet, instanceUID: info.instanceUID, cardInfo: &cardInfo)
+            isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
           } catch let error as StatusWord {
-            isPaired = try tryDefaultPairing(cmdSet: cmdSet, instanceUID: info.instanceUID, cardInfo: &cardInfo)
+            isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
           }
         }
 
