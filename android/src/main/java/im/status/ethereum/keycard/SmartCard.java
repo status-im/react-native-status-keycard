@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.nfc.NfcAdapter;
-import android.support.annotation.Nullable;
 import android.util.EventLog;
 import android.util.Log;
 
@@ -207,6 +206,22 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         log("seed loaded to card");
     }
 
+    public boolean tryDefaultPairing(KeycardCommandSet cmdSet, String instanceUID, WritableMap cardInfo) throws IOException {
+        try {
+            cmdSet.autoPair("KeycardDefaultPairing");
+
+            Pairing pairing = cmdSet.getPairing();
+            pairings.put(instanceUID, pairing.toBase64());
+            cardInfo.putString("new-pairing", pairing.toBase64());
+
+            openSecureChannel(cmdSet);
+            return true;
+        } catch(APDUException e) {
+            Log.i(TAG, "autoOpenSecureChannel failed: " + e.getMessage());
+            return false;
+        }
+    }
+
     public WritableMap getApplicationInfo() throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
@@ -227,23 +242,25 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
             Boolean isPaired = false;
 
-            if (pairings.containsKey(instanceUID)) {
+            if (!pairings.containsKey(instanceUID)) {
+                isPaired = tryDefaultPairing(cmdSet, instanceUID, cardInfo);
+            } else {
                 try {
                     openSecureChannel(cmdSet);
                     isPaired = true;
                 } catch(APDUException e) {
-                    Log.i(TAG, "autoOpenSecureChannel failed: " + e.getMessage());
+                    isPaired = tryDefaultPairing(cmdSet, instanceUID, cardInfo);
                 }
+            }
 
-                if (isPaired) {
-                    ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
+            if (isPaired) {
+                ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
 
-                    Log.i(TAG, "PIN retry counter: " + status.getPINRetryCount());
-                    Log.i(TAG, "PUK retry counter: " + status.getPUKRetryCount());
+                Log.i(TAG, "PIN retry counter: " + status.getPINRetryCount());
+                Log.i(TAG, "PUK retry counter: " + status.getPUKRetryCount());
 
-                    cardInfo.putInt("pin-retry-counter", status.getPINRetryCount());
-                    cardInfo.putInt("puk-retry-counter", status.getPUKRetryCount());
-                }
+                cardInfo.putInt("pin-retry-counter", status.getPINRetryCount());
+                cardInfo.putInt("puk-retry-counter", status.getPUKRetryCount());
             }
 
             cardInfo.putBoolean("has-master-key?", info.hasMasterKey());

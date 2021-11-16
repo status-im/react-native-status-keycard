@@ -20,11 +20,11 @@ class SmartCard {
 
     func initialize(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let puk = self.randomPUK()
-      let pairingPassword = self.randomPairingPassword();
+      let pairingPassword = "KeycardDefaultPairing"
 
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       try cmdSet.select().checkOK()
-      try cmdSet.initialize(pin: pin, puk: puk, pairingPassword: pairingPassword).checkOK();
+      try cmdSet.initialize(pin: pin, puk: puk, pairingPassword: pairingPassword).checkOK()
 
       resolve(["pin": pin, "puk": puk, "password": pairingPassword])
     }
@@ -129,19 +129,21 @@ class SmartCard {
             try openSecureChannel(cmdSet: cmdSet)
             isPaired = true
           } catch let error as CardError {
-            os_log("autoOpenSecureChannel failed: %@", String(describing: error));
+            isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
           } catch let error as StatusWord {
-            os_log("autoOpenSecureChannel failed: %@", String(describing: error));
+            isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
           }
+        } else {
+          isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
+        }
 
-          if (isPaired) {
-            let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
-            os_log("PIN retry counter: %d", status.pinRetryCount)
-            os_log("PUK retry counter: %d", status.pukRetryCount)
+        if (isPaired) {
+          let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
+          os_log("PIN retry counter: %d", status.pinRetryCount)
+          os_log("PUK retry counter: %d", status.pukRetryCount)
 
-            cardInfo["pin-retry-counter"] = status.pinRetryCount
-            cardInfo["puk-retry-counter"] = status.pukRetryCount
-          }
+          cardInfo["pin-retry-counter"] = status.pinRetryCount
+          cardInfo["puk-retry-counter"] = status.pukRetryCount
         }
 
         cardInfo["paired?"] = isPaired
@@ -367,6 +369,24 @@ class SmartCard {
       try openSecureChannel(cmdSet: cmdSet)
 
       return cmdSet
+    }
+
+    func tryDefaultPairing(cmdSet: KeycardCommandSet, cardInfo: inout [String: Any]) throws -> Bool {
+      do {
+        try cmdSet.autoPair(password: "KeycardDefaultPairing")
+        let pairing = Data(cmdSet.pairing!.bytes).base64EncodedString()
+        self.pairings[bytesToHex(cmdSet.info!.instanceUID)] = pairing
+        cardInfo["new-pairing"] = pairing
+
+        try openSecureChannel(cmdSet: cmdSet)
+        return true
+      } catch let error as CardError {
+        os_log("autoOpenSecureChannel failed: %@", String(describing: error));
+      } catch let error as StatusWord {
+        os_log("autoOpenSecureChannel failed: %@", String(describing: error));
+      }
+
+      return false
     }
 
     func openSecureChannel(cmdSet: KeycardCommandSet) throws -> Void {
