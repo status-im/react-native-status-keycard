@@ -199,7 +199,7 @@ class StatusKeycard: RCTEventEmitter {
               let nsError = error as NSError
               if nsError.code == 200 && nsError.domain == "NFCError" {
                 self.sendEvent(withName: "keyCardOnNFCUserCancelled", body: nil)
-              } else if nsError.code == 201 && nsError.domain == "NFCError" {
+              } else if (nsError.code == 201 || nsError.code == 203) && (nsError.domain == "NFCError") {
                 self.sendEvent(withName: "keyCardOnNFCTimeout", body: nil)
               }
             }
