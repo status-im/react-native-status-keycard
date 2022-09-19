@@ -9,8 +9,18 @@ class StatusKeycard: RCTEventEmitter {
     var cardChannel: CardChannel? = nil
     var nfcStartPrompt: String = "Hold your iPhone near a Status Keycard."
 
+    private var _keycardController: Any? = nil
+    
     @available(iOS 13.0, *)
-    private(set) lazy var keycardController: KeycardController? = nil
+    private var keycardController: KeycardController? {
+      get {
+        return _keycardController as? KeycardController
+      }
+
+      set(kc) {
+        _keycardController = kc
+      }
+    }
 
     @objc
     func nfcIsSupported(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
