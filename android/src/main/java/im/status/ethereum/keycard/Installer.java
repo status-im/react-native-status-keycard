@@ -7,7 +7,6 @@ import im.status.keycard.globalplatform.GlobalPlatformCommandSet;
 import im.status.keycard.globalplatform.LoadCallback;
 import im.status.keycard.io.APDUException;
 import im.status.keycard.io.CardChannel;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -60,7 +59,7 @@ public class Installer {
 
 
         Log.i(TAG, "installing NDEF applet...");
-        cmdSet.installNDEFApplet(Hex.decode("0024d40f12616e64726f69642e636f6d3a706b67696d2e7374617475732e657468657265756d")).checkOK();
+        cmdSet.installNDEFApplet(HexUtils.hexStringToByteArray("0024d40f12616e64726f69642e636f6d3a706b67696d2e7374617475732e657468657265756d")).checkOK();
 
         eventEmitter.emit("keycardInstallationProgress", 0.72);
 
