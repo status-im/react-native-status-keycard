@@ -40,7 +40,8 @@ import im.status.keycard.applet.Pairing;
 import im.status.keycard.applet.ApplicationInfo;
 import im.status.keycard.applet.KeyPath;
 
-import org.bouncycastle.util.encoders.Hex;
+import im.status.keycard.HexUtils;
+
 
 public class SmartCard extends BroadcastReceiver implements CardListener {
     private NFCCardManager cardManager;
@@ -165,10 +166,10 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         // First thing to do is selecting the applet on the card.
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
-        String instanceUID = Hex.toHexString(info.getInstanceUID());
+        String instanceUID = HexUtils.byteArrayToHexString(info.getInstanceUID());
         Log.i(TAG, "Instance UID: " + instanceUID);
-        Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
-        Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
+        Log.i(TAG, "Key UID: " + HexUtils.byteArrayToHexString(info.getKeyUID()));
+        Log.i(TAG, "Secure channel public key: " + HexUtils.byteArrayToHexString(info.getSecureChannelPubKey()));
         Log.i(TAG, "Application version: " + info.getAppVersionString());
         Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
 
@@ -232,11 +233,11 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cardInfo.putBoolean("initialized?", info.isInitializedCard());
 
         if (info.isInitializedCard()) {
-            String instanceUID = Hex.toHexString(info.getInstanceUID());
+            String instanceUID = HexUtils.byteArrayToHexString(info.getInstanceUID());
 
             Log.i(TAG, "Instance UID: " + instanceUID);
-            Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
-            Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
+            Log.i(TAG, "Key UID: " + HexUtils.byteArrayToHexString(info.getKeyUID()));
+            Log.i(TAG, "Secure channel public key: " + HexUtils.byteArrayToHexString(info.getSecureChannelPubKey()));
             Log.i(TAG, "Application version: " + info.getAppVersionString());
             Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
 
@@ -265,9 +266,9 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
             cardInfo.putBoolean("has-master-key?", info.hasMasterKey());
             cardInfo.putBoolean("paired?", isPaired);
-            cardInfo.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
-            cardInfo.putString("key-uid", Hex.toHexString(info.getKeyUID()));
-            cardInfo.putString("secure-channel-pub-key", Hex.toHexString(info.getSecureChannelPubKey()));
+            cardInfo.putString("instance-uid", HexUtils.byteArrayToHexString(info.getInstanceUID()));
+            cardInfo.putString("key-uid", HexUtils.byteArrayToHexString(info.getKeyUID()));
+            cardInfo.putString("secure-channel-pub-key", HexUtils.byteArrayToHexString(info.getSecureChannelPubKey()));
             cardInfo.putString("app-version", info.getAppVersionString());
             cardInfo.putInt("free-pairing-slots", info.getFreePairingSlots());
         }
@@ -315,7 +316,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         byte[] key = cmdSet.exportCurrentKey(true).checkOK().getData();
 
-        return Hex.toHexString(key);
+        return HexUtils.byteArrayToHexString(key);
     }
 
     public String exportKeyWithPath(final String pin, final String path) throws IOException, APDUException {
@@ -323,7 +324,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         byte[] key = BIP32KeyPair.fromTLV(cmdSet.exportKey(path, false, true).checkOK().getData()).getPublicKey();
 
-        return Hex.toHexString(key);
+        return HexUtils.byteArrayToHexString(key);
     }
 
     public WritableMap getKeys(final String pin) throws IOException, APDUException {
@@ -338,12 +339,12 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         ApplicationInfo info = cmdSet.getApplicationInfo();
 
         WritableMap data = Arguments.createMap();
-        data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
-        data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
-        data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
-        data.putString("encryption-public-key", Hex.toHexString(encryptionKeyPair.getPublicKey()));
-        data.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
-        data.putString("key-uid", Hex.toHexString(info.getKeyUID()));
+        data.putString("whisper-address", HexUtils.byteArrayToHexString(whisperKeyPair.toEthereumAddress()));
+        data.putString("whisper-public-key", HexUtils.byteArrayToHexString(whisperKeyPair.getPublicKey()));
+        data.putString("whisper-private-key", HexUtils.byteArrayToHexString(whisperKeyPair.getPrivateKey()));
+        data.putString("encryption-public-key", HexUtils.byteArrayToHexString(encryptionKeyPair.getPublicKey()));
+        data.putString("instance-uid", HexUtils.byteArrayToHexString(info.getInstanceUID()));
+        data.putString("key-uid", HexUtils.byteArrayToHexString(info.getKeyUID()));
 
         return data;
     }
@@ -369,18 +370,18 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         ApplicationInfo info = cmdSet.getApplicationInfo();
 
         WritableMap data = Arguments.createMap();
-        data.putString("address", Hex.toHexString(masterPair.toEthereumAddress()));
-        data.putString("public-key", Hex.toHexString(masterPair.getPublicKey()));
-        data.putString("wallet-root-address", Hex.toHexString(keyPair.toEthereumAddress()));
-        data.putString("wallet-root-public-key", Hex.toHexString(keyPair.getPublicKey()));
-        data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
-        data.putString("wallet-public-key", Hex.toHexString(walletKeyPair.getPublicKey()));
-        data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
-        data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
-        data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
-        data.putString("encryption-public-key", Hex.toHexString(encryptionKeyPair.getPublicKey()));
-        data.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
-        data.putString("key-uid", Hex.toHexString(info.getKeyUID()));
+        data.putString("address", HexUtils.byteArrayToHexString(masterPair.toEthereumAddress()));
+        data.putString("public-key", HexUtils.byteArrayToHexString(masterPair.getPublicKey()));
+        data.putString("wallet-root-address", HexUtils.byteArrayToHexString(keyPair.toEthereumAddress()));
+        data.putString("wallet-root-public-key", HexUtils.byteArrayToHexString(keyPair.getPublicKey()));
+        data.putString("wallet-address", HexUtils.byteArrayToHexString(walletKeyPair.toEthereumAddress()));
+        data.putString("wallet-public-key", HexUtils.byteArrayToHexString(walletKeyPair.getPublicKey()));
+        data.putString("whisper-address", HexUtils.byteArrayToHexString(whisperKeyPair.toEthereumAddress()));
+        data.putString("whisper-public-key", HexUtils.byteArrayToHexString(whisperKeyPair.getPublicKey()));
+        data.putString("whisper-private-key", HexUtils.byteArrayToHexString(whisperKeyPair.getPrivateKey()));
+        data.putString("encryption-public-key", HexUtils.byteArrayToHexString(encryptionKeyPair.getPublicKey()));
+        data.putString("instance-uid", HexUtils.byteArrayToHexString(info.getInstanceUID()));
+        data.putString("key-uid", HexUtils.byteArrayToHexString(info.getKeyUID()));
 
         return data;
     }
@@ -413,18 +414,18 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
 
         WritableMap data = Arguments.createMap();
-        data.putString("address", Hex.toHexString(keyPair.toEthereumAddress()));
-        data.putString("public-key", Hex.toHexString(keyPair.getPublicKey()));
-        data.putString("wallet-root-address", Hex.toHexString(rootKeyPair.toEthereumAddress()));
-        data.putString("wallet-root-public-key", Hex.toHexString(rootKeyPair.getPublicKey()));
-        data.putString("wallet-address", Hex.toHexString(walletKeyPair.toEthereumAddress()));
-        data.putString("wallet-public-key", Hex.toHexString(walletKeyPair.getPublicKey()));
-        data.putString("whisper-address", Hex.toHexString(whisperKeyPair.toEthereumAddress()));
-        data.putString("whisper-public-key", Hex.toHexString(whisperKeyPair.getPublicKey()));
-        data.putString("whisper-private-key", Hex.toHexString(whisperKeyPair.getPrivateKey()));
-        data.putString("encryption-public-key", Hex.toHexString(encryptionKeyPair.getPublicKey()));
-        data.putString("instance-uid", Hex.toHexString(info.getInstanceUID()));
-        data.putString("key-uid", Hex.toHexString(info.getKeyUID()));
+        data.putString("address", HexUtils.byteArrayToHexString(keyPair.toEthereumAddress()));
+        data.putString("public-key", HexUtils.byteArrayToHexString(keyPair.getPublicKey()));
+        data.putString("wallet-root-address", HexUtils.byteArrayToHexString(rootKeyPair.toEthereumAddress()));
+        data.putString("wallet-root-public-key", HexUtils.byteArrayToHexString(rootKeyPair.getPublicKey()));
+        data.putString("wallet-address", HexUtils.byteArrayToHexString(walletKeyPair.toEthereumAddress()));
+        data.putString("wallet-public-key", HexUtils.byteArrayToHexString(walletKeyPair.getPublicKey()));
+        data.putString("whisper-address", HexUtils.byteArrayToHexString(whisperKeyPair.toEthereumAddress()));
+        data.putString("whisper-public-key", HexUtils.byteArrayToHexString(whisperKeyPair.getPublicKey()));
+        data.putString("whisper-private-key", HexUtils.byteArrayToHexString(whisperKeyPair.getPrivateKey()));
+        data.putString("encryption-public-key", HexUtils.byteArrayToHexString(encryptionKeyPair.getPublicKey()));
+        data.putString("instance-uid", HexUtils.byteArrayToHexString(info.getInstanceUID()));
+        data.putString("key-uid", HexUtils.byteArrayToHexString(info.getKeyUID()));
 
         return data;
     }
@@ -479,7 +480,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         cmdSet.autoUnpair();
         Log.i(TAG, "card unpaired");
-        String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
+        String instanceUID = HexUtils.byteArrayToHexString(cmdSet.getApplicationInfo().getInstanceUID());
         pairings.remove(instanceUID);
     }
 
@@ -513,7 +514,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.autoUnpair();
         Log.i(TAG, "card unpaired");
 
-        String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
+        String instanceUID = HexUtils.byteArrayToHexString(cmdSet.getApplicationInfo().getInstanceUID());
         pairings.remove(instanceUID);
     }
 
@@ -525,13 +526,13 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     public String sign(final String pin, final String message) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
-        byte[] hash = Hex.decode(message);
+        byte[] hash = HexUtils.hexStringToByteArray(message);
         RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
 
-        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
+        Log.i(TAG, "Signed hash: " + HexUtils.byteArrayToHexString(hash));
         Log.i(TAG, "Recovery ID: " + signature.getRecId());
-        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
-        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
+        Log.i(TAG, "R: " + HexUtils.byteArrayToHexString(signature.getR()));
+        Log.i(TAG, "S: " + HexUtils.byteArrayToHexString(signature.getS()));
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -539,7 +540,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         out.write(signature.getS());
         out.write(signature.getRecId());
 
-        String sig = Hex.toHexString(out.toByteArray());
+        String sig = HexUtils.byteArrayToHexString(out.toByteArray());
         Log.i(TAG, "Signature: " + sig);
 
         return sig;
@@ -548,7 +549,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     public String signWithPath(final String pin, final String path, final String message) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
-        byte[] hash = Hex.decode(message);
+        byte[] hash = HexUtils.hexStringToByteArray(message);
 
         RecoverableSignature signature;
 
@@ -562,10 +563,10 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
             signature = new RecoverableSignature(hash, cmdSet.signWithPath(hash, path, false).checkOK().getData());
         }
 
-        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
+        Log.i(TAG, "Signed hash: " + HexUtils.byteArrayToHexString(hash));
         Log.i(TAG, "Recovery ID: " + signature.getRecId());
-        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
-        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
+        Log.i(TAG, "R: " + HexUtils.byteArrayToHexString(signature.getR()));
+        Log.i(TAG, "S: " + HexUtils.byteArrayToHexString(signature.getS()));
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -573,7 +574,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         out.write(signature.getS());
         out.write(signature.getRecId());
 
-        String sig = Hex.toHexString(out.toByteArray());
+        String sig = HexUtils.byteArrayToHexString(out.toByteArray());
         Log.i(TAG, "Signature: " + sig);
 
         return sig;
@@ -583,13 +584,13 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         CashCommandSet cmdSet = new CashCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
 
-        byte[] hash = Hex.decode(message);
+        byte[] hash = HexUtils.hexStringToByteArray(message);
         RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
 
-        Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
+        Log.i(TAG, "Signed hash: " + HexUtils.byteArrayToHexString(hash));
         Log.i(TAG, "Recovery ID: " + signature.getRecId());
-        Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
-        Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
+        Log.i(TAG, "R: " + HexUtils.byteArrayToHexString(signature.getR()));
+        Log.i(TAG, "S: " + HexUtils.byteArrayToHexString(signature.getS()));
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -597,7 +598,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         out.write(signature.getS());
         out.write(signature.getRecId());
 
-        String sig = Hex.toHexString(out.toByteArray());
+        String sig = HexUtils.byteArrayToHexString(out.toByteArray());
         Log.i(TAG, "Signature: " + sig);
 
         return sig;
@@ -630,7 +631,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     }
 
     private void openSecureChannel(KeycardCommandSet cmdSet) throws IOException, APDUException {
-        String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
+        String instanceUID = HexUtils.byteArrayToHexString(cmdSet.getApplicationInfo().getInstanceUID());
         String pairingBase64 = pairings.get(instanceUID);
 
         if (pairingBase64 == null) {
