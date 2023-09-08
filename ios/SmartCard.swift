@@ -89,7 +89,17 @@ class SmartCard {
       resolve(true)
     }
 
-    func factoryReset(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+    func factoryResetPost(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let info = try ApplicationInfo(KeycardCommandSet(cardChannel: channel).select().checkOK().data)
+      os_log("Selecting the factory reset Keycard applet succeeded")
+
+      var cardInfo = [String: Any]()
+      cardInfo["initialized?"] = info.initializedCard
+
+      resolve(cardInfo)
+    }
+
+    func factoryResetFallback(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet: GlobalPlatformCommandSet = GlobalPlatformCommandSet(cardChannel: channel);
       try cmdSet.select().checkOK()
       os_log("ISD selected")
@@ -103,13 +113,32 @@ class SmartCard {
       try cmdSet.installKeycardInstance().checkOK()
       os_log("Keycard applet instance re-installed")
 
-      let info = try ApplicationInfo(KeycardCommandSet(cardChannel: channel).select().checkOK().data)
-      os_log("Selecting the newly installed Keycard applet succeeded")
+      factoryResetPost(channel, resolve, reject)
+    }
 
-      var cardInfo = [String: Any]()
-      cardInfo["initialized?"] = info.initializedCard
+    func factoryReset(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
+      let cmdSet = KeycardCommandSet(cardChannel: channel)
+      var resp = try cmdSet.select()
+      
+      if (resp.sw != 0x9000) {
+        factoryResetFallback(channel, resolve, reject)
+        return
+      }
 
-      resolve(cardInfo)
+      let info = try ApplicationInfo(resp.data)
+      if (!info.hasFactoryResetCapability) {
+        factoryResetFallback(channel, resolve, reject)
+        return
+      }
+
+      resp = try cmdSet.factoryReset()
+
+      if (resp.sw != 0x9000) {
+        factoryResetFallback(channel, resolve, reject)
+        return
+      }
+
+      factoryResetPost(channel, resolve, reject)
     }
 
     func getApplicationInfo(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {

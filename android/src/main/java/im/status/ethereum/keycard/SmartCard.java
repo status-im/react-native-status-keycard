@@ -275,7 +275,17 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return cardInfo;
     }
 
-    public WritableMap factoryReset() throws IOException, APDUException {
+    public WritableMap factoryResetPost() throws IOException, APDUException {
+        ApplicationInfo info = new ApplicationInfo(new KeycardCommandSet(this.cardChannel).select().checkOK().getData());
+        Log.i(TAG, "Selecting the factory reset Keycard applet succeeded");
+
+        WritableMap cardInfo = Arguments.createMap();
+        cardInfo.putBoolean("initialized?", info.isInitializedCard());
+
+        return cardInfo; 
+    }
+
+    public WritableMap factoryResetFallback() throws IOException, APDUException {
         GlobalPlatformCommandSet cmdSet = new GlobalPlatformCommandSet(this.cardChannel);
         cmdSet.select().checkOK();
         Log.i(TAG, "ISD selected");
@@ -287,15 +297,30 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "Keycard applet instance deleted");
 
         cmdSet.installKeycardApplet().checkOK();
-        Log.i(TAG, "Keycard applet instance re-installed");
+        Log.i(TAG, "Keycard applet instance re-installed");  
 
-        ApplicationInfo info = new ApplicationInfo(new KeycardCommandSet(this.cardChannel).select().checkOK().getData());
-        Log.i(TAG, "Selecting the newly installed Keycard applet succeeded");
+        return factoryResetPost();     
+    }
 
-        WritableMap cardInfo = Arguments.createMap();
-        cardInfo.putBoolean("initialized?", info.isInitializedCard());
+    public WritableMap factoryReset() throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        APDUResponse resp = cmdSet.select();
 
-        return cardInfo;
+        if (!resp.isOK()) {
+            return factoryResetFallback();
+        }
+
+        ApplicationInfo info = new ApplicationInfo(resp.getData());
+        
+        if (!info.hasFactoryResetCapability()) {
+            return factoryResetFallback();
+        }
+
+        if (!cmdSet.factoryReset().isOK()) {
+            return factoryResetFallback();
+        }
+
+        return factoryResetPost();
     }
 
     public void deriveKey(final String path, final String pin) throws IOException, APDUException {
