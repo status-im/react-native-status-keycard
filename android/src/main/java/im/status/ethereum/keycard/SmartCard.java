@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import im.status.keycard.applet.RecoverableSignature;
+import im.status.keycard.applet.Certificate;
 import im.status.keycard.globalplatform.GlobalPlatformCommandSet;
 import im.status.keycard.io.APDUException;
 import im.status.keycard.io.APDUResponse;
@@ -626,6 +627,20 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         Log.i(TAG, "Signature: " + sig);
 
         return sig;
+    }
+
+    public WritableMap verifyCard(final String challenge) throws IOException, APDUException {
+        KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
+        cmdSet.select().checkOK();
+        byte[] rawChallenge = Hex.decode(challenge);
+        byte[] data = cmdSet.identifyCard(rawChallenge).checkOK().getData();
+        byte[] caPubKey = Certificate.verifyIdentity(challenge, data);
+
+        WritableMap out = Arguments.createMap();
+        data.putString("ca-public-key", Hex.toHexString(caPubKey));
+        data.putString("tlv-data", Hex.toHexString(data));
+
+        return out;
     }
 
     public void setPairings(ReadableMap newPairings) {
