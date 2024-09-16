@@ -634,7 +634,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         cmdSet.select().checkOK();
         byte[] rawChallenge = Hex.decode(challenge);
         byte[] data = cmdSet.identifyCard(rawChallenge).checkOK().getData();
-        byte[] caPubKey = Certificate.verifyIdentity(challenge, data);
+        byte[] caPubKey = Certificate.verifyIdentity(rawChallenge, data);
 
         WritableMap out = Arguments.createMap();
         out.putString("ca-public-key", Hex.toHexString(caPubKey));
