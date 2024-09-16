@@ -637,8 +637,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         byte[] caPubKey = Certificate.verifyIdentity(challenge, data);
 
         WritableMap out = Arguments.createMap();
-        data.putString("ca-public-key", Hex.toHexString(caPubKey));
-        data.putString("tlv-data", Hex.toHexString(data));
+        out.putString("ca-public-key", Hex.toHexString(caPubKey));
+        out.putString("tlv-data", Hex.toHexString(data));
 
         return out;
     }
