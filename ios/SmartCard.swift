@@ -140,6 +140,19 @@ class SmartCard {
 
       factoryResetPost(channel, resolve, reject)
     }
+    
+    func verifyCard(channel: CardChannel, challenge: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws {
+      let cmdSet = KeycardCommandSet(cardChannel: channel)
+      try cmdSet.select().checkOK()
+      let rawChallenge = hexToBytes(challenge);
+      let data = try cmdSet.identifyCard(challenge: rawChallenge).checkOK().data
+      let caPubKey = try Certificate.verifyIdentity(hash: rawChallenge, tlvData: data);
+
+      resolve([
+        "ca-public-key": bytesToHex(caPubKey ?? []),
+        "tlv-data": bytesToHex(data)
+      ])
+    }
 
     func getApplicationInfo(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
