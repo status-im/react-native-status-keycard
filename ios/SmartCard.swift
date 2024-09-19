@@ -113,7 +113,7 @@ class SmartCard {
       try cmdSet.installKeycardInstance().checkOK()
       os_log("Keycard applet instance re-installed")
 
-      factoryResetPost(channel: channel, resolve: resolve, reject: reject)
+      try factoryResetPost(channel: channel, resolve: resolve, reject: reject)
     }
 
     func factoryReset(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
@@ -121,24 +121,24 @@ class SmartCard {
       var resp = try cmdSet.select()
       
       if (resp.sw != 0x9000) {
-        factoryResetFallback(channel: channel, resolve: resolve, reject: reject)
+        try factoryResetFallback(channel: channel, resolve: resolve, reject: reject)
         return
       }
 
       let info = try ApplicationInfo(resp.data)
       if (!info.hasFactoryResetCapability) {
-        factoryResetFallback(channel: channel, resolve: resolve, reject: reject)
+        try factoryResetFallback(channel: channel, resolve: resolve, reject: reject)
         return
       }
 
       resp = try cmdSet.factoryReset()
 
       if (resp.sw != 0x9000) {
-        factoryResetFallback(channel: channel, resolve: resolve, reject: reject)
+        try factoryResetFallback(channel: channel, resolve: resolve, reject: reject)
         return
       }
 
-      factoryResetPost(channel: channel, resolve: resolve, reject: reject)
+      try factoryResetPost(channel: channel, resolve: resolve, reject: reject)
     }
     
     func verifyCard(channel: CardChannel, challenge: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws {
