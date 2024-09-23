@@ -56,6 +56,17 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     public void onHostDestroy() {
     }
 
+    // Required for rn built in EventEmitter Calls.
+    @ReactMethod
+    public void addListener(String eventName) {
+
+    }
+
+    @ReactMethod
+    public void removeListeners(Integer count) {
+
+    }    
+
     @ReactMethod
     public void nfcIsSupported(final Promise promise) {
         if (smartCard != null) {
@@ -482,6 +493,20 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
                 try {
                     smartCard.unpairAndDelete(pin);
                     promise.resolve(true);
+                } catch (IOException | APDUException e) {
+                    Log.d(TAG, e.getMessage());
+                    promise.reject(e);
+                }
+            }
+        }).start();
+    }
+
+    @ReactMethod
+    public void verifyCard(final String challenge, final Promise promise) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    promise.resolve(smartCard.verifyCard(challenge));
                 } catch (IOException | APDUException e) {
                     Log.d(TAG, e.getMessage());
                     promise.reject(e);
