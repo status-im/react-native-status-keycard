@@ -50,6 +50,7 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private EventEmitter eventEmitter;
     private static final String TAG = "SmartCard";
     private Boolean started = false;
+    private Boolean listening = false;
     private HashMap<String, String> pairings;
 
     private static final String MASTER_PATH = "m";
@@ -102,15 +103,33 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         }
     }
 
+    public void startNFC() {
+        this.listening = true;
+        if (this.cardChannel != null) {
+            eventEmitter.emit("keyCardOnConnected", null);
+        }
+    }
+
+    public void stopNFC() {
+        this.listening = false;
+    }
+
     @Override
     public void onConnected(final CardChannel channel) {
         this.cardChannel = channel;
-        eventEmitter.emit("keyCardOnConnected", null);
+
+        if (this.listening) {
+            eventEmitter.emit("keyCardOnConnected", null);
+        }
     }
 
     @Override
     public void onDisconnected() {
-        eventEmitter.emit("keyCardOnDisconnected", null);
+        this.cardChannel = null;
+        
+        if (this.listening) {
+            eventEmitter.emit("keyCardOnDisconnected", null);
+        }
     }
 
     @Override
