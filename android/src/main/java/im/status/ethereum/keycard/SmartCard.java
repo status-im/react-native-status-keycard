@@ -246,6 +246,34 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         }
     }
 
+    private boolean verifyAuthenticity(KeycardCommandSet cmdSet, String instanceUID) throws IOException {
+        if ((this.caPubKeys.length == 0) || instanceUID.equals(this.skipVerificationUID)) {
+            this.skipVerificationUID = "";
+            return true;
+        }
+
+        try {
+            byte[] rawChallenge = SmartCardSecrets.randomBytes(32);
+            byte[] data = cmdSet.identifyCard(rawChallenge).checkOK().getData();
+            byte[] caPubKey = Certificate.verifyIdentity(rawChallenge, data);
+
+            if (caPubKey == null) {
+                return false;
+            }
+
+            String caStr = Hex.toHexString(caPubKey);
+            for (int i = 0; i < this.caPubKeys.length; i++) {
+                if (caStr.equals(this.caPubKeys[i])) {
+                    return true;
+                }
+            }
+        } catch(APDUException e) {
+            Log.i(TAG, "verification failed: " + e.getMessage());
+        }
+
+        return false;
+    }
+
     public WritableMap getApplicationInfo() throws IOException, APDUException {
         KeycardCommandSet cmdSet = new KeycardCommandSet(this.cardChannel);
         ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
@@ -265,17 +293,27 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
             Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
 
             Boolean isPaired = false;
+            Boolean isAuthentic = false;
 
             if (!pairings.containsKey(instanceUID)) {
-                isPaired = tryDefaultPairing(cmdSet, instanceUID, cardInfo);
+                isAuthentic = verifyAuthenticity(cmdSet, instanceUID);
+                if (isAuthentic) {
+                    isPaired = tryDefaultPairing(cmdSet, instanceUID, cardInfo);
+                }
             } else {
                 try {
                     openSecureChannel(cmdSet);
                     isPaired = true;
+                    isAuthentic = true;
                 } catch(APDUException e) {
-                    isPaired = tryDefaultPairing(cmdSet, instanceUID, cardInfo);
+                    isAuthentic = verifyAuthenticity(cmdSet, instanceUID);
+                    if (isAuthentic) {
+                        isPaired = tryDefaultPairing(cmdSet, instanceUID, cardInfo);
+                    }
                 }
             }
+
+            cardInfo.putBoolean("authentic?", isAuthentic);
 
             if (isPaired) {
                 ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
