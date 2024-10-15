@@ -189,6 +189,16 @@ class StatusKeycard: RCTEventEmitter {
     }
 
     @objc
+    func setCertificationAuthorities(_ caPubKeys: NSArray, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+      self.smartCard.setCertificationAuthorities(newCAPubKeys: caPubKeys, resolve: resolve, reject: reject)
+    }
+
+    @objc
+    func setOneTimeVerificationSkip(_ instanceUID: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+      self.smartCard.setOneTimeVerificationSkip(instanceUID: instanceUID, resolve: resolve, reject: reject)
+    }
+
+    @objc
     func startNFC(_ prompt: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
       if #available(iOS 13.0, *) {
         if (keycardController == nil) {

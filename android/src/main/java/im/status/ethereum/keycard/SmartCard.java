@@ -52,6 +52,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
     private Boolean started = false;
     private Boolean listening = false;
     private HashMap<String, String> pairings;
+    private String[] caPubKeys;
+    private String skipVerificationUID;
 
     private static final String MASTER_PATH = "m";
     private static final String ROOT_PATH = "m/44'/60'/0'/0";
@@ -65,6 +67,8 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         this.cardManager.setCardListener(this);
         this.eventEmitter = new EventEmitter(reactContext);
         this.pairings = new HashMap<>();
+        this.caPubKeys = new String[0];
+        this.skipVerificationUID = "";
     }
 
     public String getName() {
@@ -642,6 +646,18 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
             String value = ((ReadableMap) entry.getValue()).getString("pairing");
             pairings.put(entry.getKey(), value);
         }
+    }
+
+    public void setCertificationAuthorities(ReadableArray newCAPubKeys) {
+        this.caPubKeys = new String[newCAPubKeys.size()];
+
+        for (int i = 0; i < newCAPubKeys.size(); i++) {
+            this.caPubKeys[i] = newCAPubKeys.getString(i);
+        }        
+    }
+
+    public void setOneTimeVerificationSkip(String instanceUID) {
+        this.skipVerificationUID = instanceUID;    
     }
 
     private KeycardCommandSet authenticatedCommandSet(String pin) throws IOException, APDUException {

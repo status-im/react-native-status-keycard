@@ -15,6 +15,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableArray;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -487,6 +488,18 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
     @ReactMethod
     public void setPairings(ReadableMap pairings, final Promise promise) {
         smartCard.setPairings(pairings);
+        promise.resolve(true);
+    }
+
+    @ReactMethod
+    public void setCertificationAuthorities(ReadableArray caPubKeys, final Promise promise) {
+        smartCard.setCertificationAuthorities(caPubKeys);
+        promise.resolve(true);
+    }
+
+    @ReactMethod
+    public void setOneTimeVerificationSkip(String instanceUID, final Promise promise) {
+        smartCard.setOneTimeVerificationSkip(instanceUID);
         promise.resolve(true);
     }
 }

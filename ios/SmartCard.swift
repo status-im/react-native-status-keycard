@@ -17,6 +17,8 @@ enum DerivationPath: String {
 
 class SmartCard {
     var pairings: [String: String] = [:]
+    var caPubKeys: [String] = []
+    var skipVerificationUID: String = ""
 
     func initialize(channel: CardChannel, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let puk = self.randomPUK()
@@ -394,6 +396,20 @@ class SmartCard {
         self.pairings[instanceUID] = v["pairing"] as? String
       }
 
+      resolve(true)
+    }
+
+    func setCertificationAuthorities(newCAPubKeys: NSArray, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+      self.caPubKeys.removeAll()
+      for caPubKey in (newCAPubKeys as! [String]) {
+        self.caPubKeys.append(caPubKey)
+      }
+
+      resolve(true)
+    }
+
+    func setOneTimeVerificationSkip(instanceUID: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+      self.skipVerificationUID = instanceUID
       resolve(true)
     }
 
