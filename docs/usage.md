@@ -100,7 +100,7 @@ Keycard.pair(password).then(pairing => console.log(pairing));
 ```
 
 `pairing` object contains pairing key as base64 string. 
-You will need pairing key to open secure channel for most keycard operations. More info on pairing https://status.im/keycard_api/sdk_securechannel.html
+You will need pairing key to open secure channel for most keycard operations. More info on pairing https://keycard.tech/docs/sdk/securechannel.html
 
 ### Generate mnemonic phrase
 ```javascript
@@ -154,7 +154,7 @@ Keycard.generateAndLoadKey(mnemonic, pairing, pin).then(data => console.log(data
 
 `encryption-public-key` is public key with derivation path `m/43'/60'/1581'/1'/0`
 
-More info about key derivation: https://status.im/keycard_api/sdk_derivation_sign.html
+More info about key derivation: https://keycard.tech/docs/sdk/derivation_sign.html
 
 ### Get keys from keycard
 ```javascript
@@ -205,18 +205,7 @@ Recovery ID: `0`
 
 Would produce signature: `d684afb4ec9ce59f2d112a9c9400bd04f5a5b2518b251dba4ad135448f2e75367c2ea6412893d8001ed9c9efeb7c7d37bc11f7dfcf27c4818cf0861da199de1900`
 
-More info about signing: https://status.im/keycard_api/sdk_derivation_sign.html
-
-### Derive key
-Changes derivation path:
-```javascript
-const path = "m/44'/60'/0'/0/0"
-const pairing = "AFFdkP01GywuaJRQkGDq+OyPHBE9nECEDDCfXhpfaxlo";
-const pin = "123456";
-
-Keycard.deriveKey(path, pairing, pin).then(path => console.log("path changed to " + path));
-```
-More information on key derivation: https://status.im/keycard_api/sdk_derivation_sign.html
+More info about signing: https://keycard.tech/docs/sdk/derivation_sign.html
 
 ### Remove key
 Removes master key from keycard:
@@ -276,12 +265,6 @@ const puk = "123456123456";
 const newPin = "111111";
 
 Keycard.removeKey(pairing, puk, newPin).then(() => console.log("pin unblocked"));
-```
-
-### Install applet
-Keycard usually comes with installed applet. But if you have empty keycard without the applet, you can install applet with:
-```javascript
-Keycard.installApplet().then(() => console.log("applet installed"));
 ```
 
 ### Keycard CLI

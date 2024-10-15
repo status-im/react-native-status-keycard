@@ -24,7 +24,6 @@ import im.status.keycard.io.APDUException;
 
 public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
     private static final String TAG = "StatusKeycard";
-    private static final String CAP_FILENAME = "keycard_v2.2.1.cap";
     private SmartCard smartCard;
     private final ReactApplicationContext reactContext;
 
@@ -316,40 +315,12 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
 
     @ReactMethod
     public void installApplet(final Promise promise) {
-        final ReactContext ctx = this.reactContext;
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    smartCard.installApplet(ctx.getAssets(), CAP_FILENAME);
-                    promise.resolve(true);
-                } catch (IOException | APDUException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-                    Log.d(TAG, e.getMessage());
-                    promise.reject(e);
-                }
-            }
-        }).start();
+        promise.reject("E_KEYCARD", "Not implemented (unused)");
     }
 
     @ReactMethod
     public void installAppletAndInitCard(final String pin, final Promise promise) {
-        final ReactContext ctx = this.reactContext;
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    SmartCardSecrets s = smartCard.installAppletAndInitCard(pin, ctx.getAssets(), CAP_FILENAME);
-
-                    WritableMap params = Arguments.createMap();
-                    params.putString("pin", s.getPin());
-                    params.putString("puk", s.getPuk());
-                    params.putString("password", s.getPairingPassword());
-
-                    promise.resolve(params);
-                } catch (IOException | APDUException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-                    Log.d(TAG, e.getMessage());
-                    promise.reject(e);
-                }
-            }
-        }).start();
+        promise.reject("E_KEYCARD", "Not implemented (unused)");
     }
 
     @ReactMethod
@@ -443,17 +414,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
 
     @ReactMethod
     public void delete(final Promise promise) {
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    smartCard.delete();
-                    promise.resolve(true);
-                } catch (IOException | APDUException e) {
-                    Log.d(TAG, e.getMessage());
-                    promise.reject(e);
-                }
-            }
-        }).start();
+        promise.reject("E_KEYCARD", "Not implemented (unused)");
     }
 
     @ReactMethod
@@ -488,17 +449,7 @@ public class RNStatusKeycardModule extends ReactContextBaseJavaModule implements
 
     @ReactMethod
     public void unpairAndDelete(final String pin, final Promise promise) {
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    smartCard.unpairAndDelete(pin);
-                    promise.resolve(true);
-                } catch (IOException | APDUException e) {
-                    Log.d(TAG, e.getMessage());
-                    promise.reject(e);
-                }
-            }
-        }).start();
+        promise.reject("E_KEYCARD", "Not implemented (unused)");
     }
 
     @ReactMethod

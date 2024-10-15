@@ -474,18 +474,6 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         return data;
     }
 
-    public void installApplet(AssetManager assets, String capPath) throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
-        Installer installer = new Installer(this.cardChannel, assets, capPath, eventEmitter);
-        installer.start();
-    }
-
-    public SmartCardSecrets installAppletAndInitCard(final String userPin, AssetManager assets, String capPath) throws IOException, APDUException, NoSuchAlgorithmException, InvalidKeySpecException {
-        Installer installer = new Installer(this.cardChannel, assets, capPath, eventEmitter);
-        installer.start();
-
-        return init(userPin);
-    }
-
     public int verifyPin(final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
         return 3;
@@ -528,17 +516,6 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
         pairings.remove(instanceUID);
     }
 
-    public void delete() throws IOException, APDUException {
-        GlobalPlatformCommandSet cmdSet = new GlobalPlatformCommandSet(this.cardChannel);
-        cmdSet.select().checkOK();
-
-        cmdSet.openSecureChannel();
-        Log.i(TAG, "secure channel opened");
-
-        cmdSet.deleteKeycardInstancesAndPackage();
-        Log.i(TAG, "instance and package deleted");
-    }
-
     public void removeKey(final String pin) throws IOException, APDUException {
         KeycardCommandSet cmdSet = authenticatedCommandSet(pin);
 
@@ -560,11 +537,6 @@ public class SmartCard extends BroadcastReceiver implements CardListener {
 
         String instanceUID = Hex.toHexString(cmdSet.getApplicationInfo().getInstanceUID());
         pairings.remove(instanceUID);
-    }
-
-    public void unpairAndDelete(final String pin) throws IOException, APDUException {
-        unpair(pin);
-        delete();
     }
 
     public String sign(final String pin, final String message) throws IOException, APDUException {

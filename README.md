@@ -14,7 +14,7 @@ React Native library to interact with [Keycard](https://keycard.status.im/) usin
 
 ### Manual installation
 
-Android is the only platform supported by now.
+Both iOS and Android are supported
 
 #### Android
 
@@ -38,7 +38,6 @@ Android is the only platform supported by now.
 
 Take a look into [docs](./docs/usage.md)
 
-For more usage examples, please refer to https://github.com/status-im/status-react (assuming you can read Clojure)
+For more usage examples, please refer to https://github.com/status-im/status-mobile (assuming you can read Clojure)
 
-For Keycard API documention, please look into https://status.im/keycard_api/
-  
+For Keycard API documention, please look into https://keycard.tech/docs/
