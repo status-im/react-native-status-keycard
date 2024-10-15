@@ -58,7 +58,7 @@ class SmartCard {
       let keyPair = BIP32KeyPair(fromSeed: seed)
 
       try cmdSet.loadKey(keyPair: keyPair).checkOK()
-      os_log("keypair loaded to card");
+      os_log("keypair loaded to card")
 
       let rootKeyPair = try exportKey(cmdSet: cmdSet, path: .rootPath, makeCurrent: false, publicOnly: true)
       let whisperKeyPair = try exportKey(cmdSet: cmdSet, path: .whisperPath, makeCurrent: false, publicOnly: false)
@@ -87,7 +87,7 @@ class SmartCard {
       let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let seed = Mnemonic.toBinarySeed(mnemonicPhrase: mnemonic)
       try cmdSet.loadKey(seed: seed).checkOK()
-      os_log("seed loaded to card");
+      os_log("seed loaded to card")
       resolve(true)
     }
 
@@ -102,7 +102,7 @@ class SmartCard {
     }
 
     func factoryResetFallback(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
-      let cmdSet: GlobalPlatformCommandSet = GlobalPlatformCommandSet(cardChannel: channel);
+      let cmdSet: GlobalPlatformCommandSet = GlobalPlatformCommandSet(cardChannel: channel)
       try cmdSet.select().checkOK()
       os_log("ISD selected")
 
@@ -146,14 +146,34 @@ class SmartCard {
     func verifyCard(channel: CardChannel, challenge: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws {
       let cmdSet = KeycardCommandSet(cardChannel: channel)
       try cmdSet.select().checkOK()
-      let rawChallenge = hexToBytes(challenge);
+      let rawChallenge = hexToBytes(challenge)
       let data = try cmdSet.identifyCard(challenge: rawChallenge).checkOK().data
-      let caPubKey = try Certificate.verifyIdentity(hash: rawChallenge, tlvData: data);
+      let caPubKey = try Certificate.verifyIdentity(hash: rawChallenge, tlvData: data)
 
       resolve([
         "ca-public-key": bytesToHex(caPubKey ?? []),
         "tlv-data": bytesToHex(data)
       ])
+    }
+
+    private func verifyAuthenticity(cmdSet: KeycardCommandSet, instanceUID: String) throws -> Bool {
+      if (self.caPubKeys.count == 0 || self.skipVerificationUID == instanceUID) {
+        self.skipVerificationUID = ""
+        return true
+      }
+
+      let rawChallenge = (0..<32).map({ _ in UInt8.random(in: 0...UInt8.max) })
+      
+      do {
+        let data = try cmdSet.identifyCard(challenge: rawChallenge).checkOK().data
+        let caPubKey = try Certificate.verifyIdentity(hash: rawChallenge, tlvData: data)
+
+        if let caPubKeyBytes = caPubKey {
+          return self.caPubKeys.contains(bytesToHex(caPubKeyBytes))
+        }
+      } catch _ as StatusWord {}
+
+      return false
     }
 
     func getApplicationInfo(channel: CardChannel, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
@@ -167,22 +187,33 @@ class SmartCard {
       if (info.initializedCard) {
         logAppInfo(info)
         var isPaired = false
+        var isAuthentic = false
+        let instanceUID = bytesToHex(info.instanceUID)
 
-        if let _ = self.pairings[bytesToHex(info.instanceUID)] {
+        if let _ = self.pairings[instanceUID] {
           do {
             try openSecureChannel(cmdSet: cmdSet)
             isPaired = true
-          } catch let error as CardError {
-            isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
-          } catch let error as StatusWord {
+            isAuthentic = true
+          } catch _ as CardError {
+            isPaired = false
+          } catch _ as StatusWord {
+            isPaired = false
+          }
+        } 
+        
+        if (!isPaired) {
+          isAuthentic = try verifyAuthenticity(cmdSet: cmdSet, instanceUID: instanceUID)
+
+          if (isAuthentic) {
             isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
           }
-        } else {
-          isPaired = try tryDefaultPairing(cmdSet: cmdSet, cardInfo: &cardInfo)
         }
 
+        cardInfo["authentic?"] = isAuthentic
+
         if (isPaired) {
-          let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data);
+          let status = try ApplicationStatus(cmdSet.getStatus(info: GetStatusP1.application.rawValue).checkOK().data)
           os_log("PIN retry counter: %d", status.pinRetryCount)
           os_log("PUK retry counter: %d", status.pukRetryCount)
 
@@ -205,7 +236,7 @@ class SmartCard {
 
     func deriveKey(channel: CardChannel, path: String, pin: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
-      let currentPath = try KeyPath(data: cmdSet.getStatus(info: GetStatusP1.keyPath.rawValue).checkOK().data);
+      let currentPath = try KeyPath(data: cmdSet.getStatus(info: GetStatusP1.keyPath.rawValue).checkOK().data)
       os_log("Current key path: %@", currentPath.description)
 
       if (currentPath.description != path) {
@@ -224,7 +255,7 @@ class SmartCard {
 
     func exportKeyWithPath(channel: CardChannel, pin: String, path: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) throws -> Void {
       let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
-      let key = try BIP32KeyPair(fromTLV: cmdSet.exportKey(path: path, makeCurrent: false, publicOnly: true).checkOK().data).publicKey;
+      let key = try BIP32KeyPair(fromTLV: cmdSet.exportKey(path: path, makeCurrent: false, publicOnly: true).checkOK().data).publicKey
 
       resolve(bytesToHex(key))
     }
@@ -284,7 +315,7 @@ class SmartCard {
       let cmdSet = try authenticatedCommandSet(channel: channel, pin: pin)
       let sig = try processSignature(message) {
         if (cmdSet.info!.appVersion < 0x0202) {
-          let currentPath = try KeyPath(data: cmdSet.getStatus(info: GetStatusP1.keyPath.rawValue).checkOK().data);
+          let currentPath = try KeyPath(data: cmdSet.getStatus(info: GetStatusP1.keyPath.rawValue).checkOK().data)
 
           if (currentPath.description != path) {
             try cmdSet.deriveKey(path: path).checkOK()
@@ -418,7 +449,7 @@ class SmartCard {
       try cmdSet.verifyPIN(pin: pin).checkAuthOK()
       os_log("pin verified")
 
-      return cmdSet;
+      return cmdSet
     }
 
     func securedCommandSet(channel: CardChannel) throws -> KeycardCommandSet {
@@ -439,9 +470,9 @@ class SmartCard {
         try openSecureChannel(cmdSet: cmdSet)
         return true
       } catch let error as CardError {
-        os_log("autoOpenSecureChannel failed: %@", String(describing: error));
+        os_log("autoOpenSecureChannel failed: %@", String(describing: error))
       } catch let error as StatusWord {
-        os_log("autoOpenSecureChannel failed: %@", String(describing: error));
+        os_log("autoOpenSecureChannel failed: %@", String(describing: error))
       }
 
       return false
